@@ -12,6 +12,7 @@ from torch import cuda
 from torch.utils.data import DataLoader
 from torch.optim import lr_scheduler
 
+# east_dataset이 repo에 없길래, 구글링해서 3기 기수 분들의 파일 불러옴. 작동 확인X
 from east_dataset import EASTDataset
 from dataset import SceneTextDataset
 from model import EAST

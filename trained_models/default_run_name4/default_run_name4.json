@@ -1,0 +1,28 @@
+{
+    "seed": 4669,
+    "data_dir": "../dataset",
+    "train_ann": "train1",
+    "valid_ann": "valid1",
+    "model_dir": "trained_models",
+    "device": "cuda",
+    "num_workers": 8,
+    "image_size": 2048,
+    "input_size": 1024,
+    "batch_size": 8,
+    "patience": 10,
+    "learning_rate": 0.001,
+    "max_epochs": 150,
+    "save_interval": 5,
+    "ignore_tags": [
+        "masked",
+        "excluded-region",
+        "maintable",
+        "stamp"
+    ],
+    "wandb_name": "default_run_name",
+    "validation": 1,
+    "augmentation": 0,
+    "binarization": 0,
+    "color_jitter": 0,
+    "normalize": 0
+}

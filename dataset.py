@@ -262,10 +262,10 @@ def find_min_rect_angle(vertices: np.ndarray,
 
 
 # Crop area가 text area와 부분적으로 겹치는지 확인
-def is_cross_text(start_loc: Tuple[int, int],
+def is_cross_text(start_loc,
                  length: int,
                  vertices: np.ndarray,
-                 intersection_threshold: Tuple[float, float] = (0.01, 0.99)) -> bool:
+                 intersection_threshold = (0.01, 0.99)) -> bool:
     """
     Args:
         start_loc (Tuple[int, int]): 자르기 영역의 좌상단 좌표 (w, h)

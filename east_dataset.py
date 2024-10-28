@@ -84,7 +84,7 @@ def find_min_rect_angle(bbox, rank_num=10):
     return best_angle
 
 
-def generate_score_geo_maps(image, word_bboxes, map_scale=0.25):
+def generate_score_geo_maps(image, word_bboxes, map_scale=0.5):
     img_h, img_w = image.shape[:2]
     map_h, map_w = int(img_h * map_scale), int(img_w * map_scale)
     inv_scale = int(1 / map_scale)
@@ -127,7 +127,7 @@ def generate_score_geo_maps(image, word_bboxes, map_scale=0.25):
 
 
 class EASTDataset(Dataset):
-    def __init__(self, dataset, map_scale=0.25, to_tensor=True):
+    def __init__(self, dataset, map_scale=0.5, to_tensor=True):
         self.dataset = dataset
         self.map_scale = map_scale
         self.to_tensor = to_tensor
