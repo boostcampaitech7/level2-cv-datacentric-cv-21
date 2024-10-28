@@ -1,0 +1,16 @@
+{"time":"2024-10-28T17:54:26.849879947+09:00","level":"INFO","msg":"using version","core version":"0.18.5"}
+{"time":"2024-10-28T17:54:26.849879947+09:00","level":"INFO","msg":"created symlink","path":"/data/ephemeral/home/.GitHub/level2-cv-datacentric-cv-04/code/wandb/run-20241028_175426-zyggrbvo/logs/debug-core.log"}
+{"time":"2024-10-28T17:54:26.953105559+09:00","level":"INFO","msg":"created new stream","id":"zyggrbvo"}
+{"time":"2024-10-28T17:54:26.953160191+09:00","level":"INFO","msg":"stream: started","id":"zyggrbvo"}
+{"time":"2024-10-28T17:54:26.953392717+09:00","level":"INFO","msg":"writer: Do: started","stream_id":{"value":"zyggrbvo"}}
+{"time":"2024-10-28T17:54:26.953453537+09:00","level":"INFO","msg":"handler: started","stream_id":{"value":"zyggrbvo"}}
+{"time":"2024-10-28T17:54:26.953534915+09:00","level":"INFO","msg":"sender: started","stream_id":"zyggrbvo"}
+{"time":"2024-10-28T17:54:28.569400919+09:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2024-10-28T17:54:28.690256293+09:00","level":"INFO","msg":"stream: closing","id":"zyggrbvo"}
+{"time":"2024-10-28T17:54:28.690326282+09:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2024-10-28T17:54:28.690948334+09:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2024-10-28T17:54:30.218953317+09:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2024-10-28T17:54:30.738444436+09:00","level":"INFO","msg":"handler: closed","stream_id":{"value":"zyggrbvo"}}
+{"time":"2024-10-28T17:54:30.73858878+09:00","level":"INFO","msg":"writer: Close: closed","stream_id":{"value":"zyggrbvo"}}
+{"time":"2024-10-28T17:54:30.738603174+09:00","level":"INFO","msg":"sender: closed","stream_id":"zyggrbvo"}
+{"time":"2024-10-28T17:54:30.738657253+09:00","level":"INFO","msg":"stream: closed","id":"zyggrbvo"}

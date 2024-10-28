@@ -1,0 +1,75 @@
+_wandb:
+    value:
+        cli_version: 0.18.5
+        m: []
+        python_version: 3.10.13
+        t:
+            "1":
+                - 1
+                - 5
+                - 53
+                - 55
+                - 80
+            "2":
+                - 1
+                - 5
+                - 53
+                - 55
+                - 80
+            "3":
+                - 13
+                - 16
+                - 23
+                - 55
+            "4": 3.10.13
+            "5": 0.18.5
+            "8":
+                - 5
+            "12": 0.18.5
+            "13": linux-x86_64
+augmentation:
+    value: 0
+batch_size:
+    value: 8
+binarization:
+    value: 0
+color_jitter:
+    value: 0
+data_dir:
+    value: ../data/medical
+device:
+    value: cuda
+ignore_tags:
+    value:
+        - masked
+        - excluded-region
+        - maintable
+        - stamp
+image_size:
+    value: 2048
+input_size:
+    value: 1024
+learning_rate:
+    value: 0.001
+max_epochs:
+    value: 150
+model_dir:
+    value: trained_models
+normalize:
+    value: 0
+num_workers:
+    value: 8
+patience:
+    value: 10
+save_interval:
+    value: 5
+seed:
+    value: 4669
+train_ann:
+    value: train1
+valid_ann:
+    value: valid1
+validation:
+    value: 1
+wandb_name:
+    value: default_run_name
