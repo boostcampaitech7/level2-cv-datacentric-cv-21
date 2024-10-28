@@ -1,0 +1,26 @@
+2024-10-28 17:54:26,846 INFO    MainThread:13566 [wandb_setup.py:_flush():79] Current SDK version is 0.18.5
+2024-10-28 17:54:26,846 INFO    MainThread:13566 [wandb_setup.py:_flush():79] Configure stats pid to 13566
+2024-10-28 17:54:26,846 INFO    MainThread:13566 [wandb_setup.py:_flush():79] Loading settings from /data/ephemeral/home/.config/wandb/settings
+2024-10-28 17:54:26,846 INFO    MainThread:13566 [wandb_setup.py:_flush():79] Loading settings from /data/ephemeral/home/.GitHub/level2-cv-datacentric-cv-04/code/wandb/settings
+2024-10-28 17:54:26,846 INFO    MainThread:13566 [wandb_setup.py:_flush():79] Loading settings from environment variables: {}
+2024-10-28 17:54:26,846 INFO    MainThread:13566 [wandb_setup.py:_flush():79] Applying setup settings: {'mode': None, '_disable_service': None}
+2024-10-28 17:54:26,846 INFO    MainThread:13566 [wandb_setup.py:_flush():79] Inferring run settings from compute environment: {'program_relpath': 'code/train.py', 'program_abspath': '/data/ephemeral/home/.GitHub/level2-cv-datacentric-cv-04/code/train.py', 'program': '/data/ephemeral/home/.GitHub/level2-cv-datacentric-cv-04/code/train.py'}
+2024-10-28 17:54:26,846 INFO    MainThread:13566 [wandb_setup.py:_flush():79] Applying login settings: {}
+2024-10-28 17:54:26,846 INFO    MainThread:13566 [wandb_init.py:_log_setup():534] Logging user logs to /data/ephemeral/home/.GitHub/level2-cv-datacentric-cv-04/code/wandb/run-20241028_175426-zyggrbvo/logs/debug.log
+2024-10-28 17:54:26,846 INFO    MainThread:13566 [wandb_init.py:_log_setup():535] Logging internal logs to /data/ephemeral/home/.GitHub/level2-cv-datacentric-cv-04/code/wandb/run-20241028_175426-zyggrbvo/logs/debug-internal.log
+2024-10-28 17:54:26,846 INFO    MainThread:13566 [wandb_init.py:init():621] calling init triggers
+2024-10-28 17:54:26,846 INFO    MainThread:13566 [wandb_init.py:init():628] wandb.init called with sweep_config: {}
+config: {'seed': 4669, 'data_dir': '../data/medical', 'train_ann': 'train1', 'valid_ann': 'valid1', 'model_dir': 'trained_models', 'device': 'cuda', 'num_workers': 8, 'image_size': 2048, 'input_size': 1024, 'batch_size': 8, 'patience': 10, 'learning_rate': 0.001, 'max_epochs': 150, 'save_interval': 5, 'ignore_tags': ['masked', 'excluded-region', 'maintable', 'stamp'], 'wandb_name': 'default_run_name', 'validation': 1, 'augmentation': 0, 'binarization': 0, 'color_jitter': 0, 'normalize': 0}
+2024-10-28 17:54:26,846 INFO    MainThread:13566 [wandb_init.py:init():671] starting backend
+2024-10-28 17:54:26,846 INFO    MainThread:13566 [wandb_init.py:init():675] sending inform_init request
+2024-10-28 17:54:26,847 INFO    MainThread:13566 [backend.py:_multiprocessing_setup():104] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2024-10-28 17:54:26,848 INFO    MainThread:13566 [wandb_init.py:init():688] backend started and connected
+2024-10-28 17:54:26,850 INFO    MainThread:13566 [wandb_init.py:init():783] updated telemetry
+2024-10-28 17:54:26,854 INFO    MainThread:13566 [wandb_init.py:init():816] communicating run to backend with 90.0 second timeout
+2024-10-28 17:54:28,565 INFO    MainThread:13566 [wandb_init.py:init():867] starting run threads in backend
+2024-10-28 17:54:28,685 INFO    MainThread:13566 [wandb_run.py:_console_start():2463] atexit reg
+2024-10-28 17:54:28,685 INFO    MainThread:13566 [wandb_run.py:_redirect():2311] redirect: wrap_raw
+2024-10-28 17:54:28,685 INFO    MainThread:13566 [wandb_run.py:_redirect():2376] Wrapping output streams.
+2024-10-28 17:54:28,685 INFO    MainThread:13566 [wandb_run.py:_redirect():2401] Redirects installed.
+2024-10-28 17:54:28,689 INFO    MainThread:13566 [wandb_init.py:init():911] run started, returning control to user process
+2024-10-28 17:54:28,690 WARNING MsgRouterThr:13566 [router.py:message_loop():77] message_loop has been closed
