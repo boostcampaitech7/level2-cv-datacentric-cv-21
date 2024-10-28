@@ -262,7 +262,7 @@ def find_min_rect_angle(vertices: np.ndarray,
     return best_angle
 
 
-# Crop area가 text area와 부분적으로 겹치는지 확인합니다.
+# Crop area가 text area와 부분적으로 겹치는지 확인
 def is_cross_text(start_loc: Tuple[int, int],
                  length: int,
                  vertices: np.ndarray,
@@ -276,8 +276,8 @@ def is_cross_text(start_loc: Tuple[int, int],
             교차 판정을 위한 (최소, 최대) 면적 비율 (기본값: (0.01, 0.99))
 
     Returns: Area(text), Area(crop)이 겹치는 경우를 근거로 판단함.
-        - True : '일부만' 겹치는 경우
-        - False : 전혀 겹치지 않거나 완전히 포함되는 경우
+        - True : '일부만' 겹치는 경우 (0.01 ~ 0.99)
+        - False : 전혀 겹치지 않거나 완전히 포함되는 경우 (~ 0.01, 0.99 ~)
     """
     # 입력 검증
     if length <= 0:
@@ -325,20 +325,12 @@ def is_cross_text(start_loc: Tuple[int, int],
     return False
 
 
-'''
+''' [Ln 332 ~ 365]
+- Crop image가 Text area를 적당히 포함하는지 확인하고, 만약 그렇지 않다면 vertex를 적당히 조절함.
+- Image resizing, random crop 사용 : Text Intersection 방지 목적
 '''
 def crop_img(img, vertices, labels, length):
-    '''crop img patches to obtain batch and augment
-    Input:
-        img         : PIL Image
-        vertices    : vertices of text regions <numpy.ndarray, (n,8)>
-        labels      : 1->valid, 0->ignore, <numpy.ndarray, (n,)>
-        length      : length of cropped image region
-    Output:
-        region      : cropped image region
-        new_vertices: new vertices in cropped region
-    '''
-    h, w = img.height, img.width
+   h, w = img.height, img.width
     # confirm the shortest side of image >= length
     if h >= w and w < length:
         img = img.resize((length, int(h * length / w)), Image.BILINEAR)
@@ -371,6 +363,10 @@ def crop_img(img, vertices, labels, length):
     new_vertices[:,[0,2,4,6]] -= start_w
     new_vertices[:,[1,3,5,7]] -= start_h
     return region, new_vertices
+
+
+    pass  # Actual implementation as shown in original code
+
 
 
 def rotate_all_pixels(rotate_mat, anchor_x, anchor_y, length):
