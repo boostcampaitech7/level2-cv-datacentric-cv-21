@@ -26,7 +26,7 @@ def parse_args():
 
     # Conventional args
     parser.add_argument("--seed", type=int, default=4669)
-    parser.add_argument("--data_dir", type=str, default="../data/medical")
+    parser.add_argument("--data_dir", type=str, default="../dataset")
     parser.add_argument("--train_ann", type=str, default="train1")
     parser.add_argument("--valid_ann", type=str, default="valid1")
     parser.add_argument("--model_dir", type=str, default="trained_models")
@@ -51,7 +51,6 @@ def parse_args():
 
     if args.input_size % 32 != 0:
         raise ValueError("`input_size` must be a multiple of 32")
-
     return args
 
 
@@ -73,20 +72,20 @@ def do_training(config, seed, data_dir, train_ann, valid_ann, model_dir, device,
         seed = int.from_bytes(os.urandom(4), byteorder="big")
     print(f"seed: {seed}")
     seed_everything(seed)  # set seed
-    
+
     # checkpoint directory initialization
     model_dir = increment_path(os.path.join(model_dir, wandb_name))
     model_name = model_dir.split("/")[-1]
-    
+
     # logging with config.json
     with open(os.path.join(model_dir, f"{model_name}.json"), "w", encoding="utf-8") as f:
         json.dump(vars(config), f, ensure_ascii=False, indent=4)
-    
+
     # logging with wandb
     wandb.init(project="level2_data_centric",
                name=model_name,
                config=config)
-    
+
     train_dataset = SceneTextDataset(
         data_dir,
         split=train_ann,
@@ -100,7 +99,7 @@ def do_training(config, seed, data_dir, train_ann, valid_ann, model_dir, device,
     )
     train_dataset = EASTDataset(train_dataset)
     train_num_batches = math.ceil(len(train_dataset) / batch_size)
-    
+
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
@@ -118,7 +117,7 @@ def do_training(config, seed, data_dir, train_ann, valid_ann, model_dir, device,
         )
         valid_dataset = EASTDataset(valid_dataset)
         valid_num_batches = math.ceil(len(valid_dataset) / batch_size)
-        
+
         valid_loader = DataLoader(
             valid_dataset,
             batch_size=batch_size,
@@ -129,16 +128,16 @@ def do_training(config, seed, data_dir, train_ann, valid_ann, model_dir, device,
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model = EAST()
     model.to(device)
-    
+
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     # optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
     scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[max_epochs // 2], gamma=0.1)
     # scheduler = lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=1, eta_min=1e-6, verbose=True)
-    
+
     # early stopping
     counter = 0
     best_val_loss = np.inf
-    
+
     # ========== train ==========
     for epoch in range(max_epochs):
         model.train()
@@ -161,7 +160,7 @@ def do_training(config, seed, data_dir, train_ann, valid_ann, model_dir, device,
                 f"Train Angle loss: {extra_info['angle_loss']:4.4f} || "
                 f"Train IoU loss: {extra_info['iou_loss']:4.4f}"
             )
-            
+
             # logging with wandb
             wandb.log({
                 "Cls loss": extra_info['cls_loss'],
@@ -172,25 +171,25 @@ def do_training(config, seed, data_dir, train_ann, valid_ann, model_dir, device,
                 "Learning Rate": scheduler.get_last_lr()[0],
                 "Seed": seed
             })
-        
+
         train_end = time.time() - train_start
         print("Train Mean loss: {:.4f} || Elapsed time: {} || ETA: {}".format(
             train_loss / train_num_batches,
             timedelta(seconds=train_end),
             timedelta(seconds=train_end*(max_epochs-epoch+1))))
-        
+
         # ========== valid ==========
         if validation:
             model.eval()
             with torch.no_grad():
                 valid_start = time.time()
                 print("\nEvaluating validation results...")
-                
+
                 for idx, (img, gt_score_map, gt_geo_map, roi_mask) in enumerate(valid_loader):
                     loss, extra_info = model.train_step(img, gt_score_map, gt_geo_map, roi_mask)
                     loss_val = loss.item()
                     valid_loss += loss_val
-                    
+
                     # logging at CLI
                     print(
                         f"Valid Batch({idx+1}/{len(valid_loader)}) || "
@@ -199,7 +198,7 @@ def do_training(config, seed, data_dir, train_ann, valid_ann, model_dir, device,
                         f"Valid Angle loss: {extra_info['angle_loss']:4.4f} || "
                         f"Valid IoU loss: {extra_info['iou_loss']:4.4f}"
                     )
-                    
+
                     # logging with wandb
                     wandb.log({
                         "Valid loss": loss_val,
@@ -219,16 +218,16 @@ def do_training(config, seed, data_dir, train_ann, valid_ann, model_dir, device,
                 else:
                     counter += 1
                     print(f"Not Val Update.. Counter : {counter}")
-                    
+
             valid_end = time.time() - valid_start
             print("Valid Mean loss: {:.4f} || Elapsed time: {}".format(
                 mean_val_loss,
                 timedelta(seconds=valid_end)))
-            
+
             print("Best Validation Loss: {:.4f} at Epoch {}".format(
                 best_val_loss,
                 best_val_loss_epoch))
-            
+
             # early stopping
             if epoch + 1 == 120 and counter > patience:
                 ckpt_fpath = osp.join(model_dir, f"epoch_{epoch+1}.pth")
@@ -239,7 +238,7 @@ def do_training(config, seed, data_dir, train_ann, valid_ann, model_dir, device,
             if (epoch + 1) >= 100 and (epoch + 1) % save_interval == 0:
                 ckpt_fpath = osp.join(model_dir, f"epoch_{epoch+1}.pth")
                 torch.save(model.state_dict(), ckpt_fpath)
-        
+
         scheduler.step()
 
 

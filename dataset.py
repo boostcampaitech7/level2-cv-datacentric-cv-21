@@ -1,4 +1,4 @@
-import os.path as osp
+import os
 import math
 import json
 import warnings
@@ -6,7 +6,7 @@ import warnings
 import cv2
 import albumentations as A
 from PIL import Image
-from skimage.util import random_noise
+from skimage.util import random_noise # Add noise : peper method
 
 import numpy as np
 from torch.utils.data import Dataset
@@ -258,7 +258,6 @@ def find_min_rect_angle(vertices: np.ndarray,
         if temp_error < min_error:
             min_error = temp_error
             best_angle = theta_rad
-
     return best_angle
 
 
@@ -330,14 +329,13 @@ def is_cross_text(start_loc: Tuple[int, int],
 - Image resizing, random crop 사용 : Text Intersection 방지 목적
 '''
 def crop_img(img, vertices, labels, length):
-   h, w = img.height, img.width
+    h, w = img.height, img.width
     # confirm the shortest side of image >= length
     if h >= w and w < length:
         img = img.resize((length, int(h * length / w)), Image.BILINEAR)
     elif h < w and h < length:
         img = img.resize((int(w * length / h), length), Image.BILINEAR)
-    ratio_w = img.width / w
-    ratio_h = img.height / h
+    ratio_w, ratio_h = img.width / w, img.height / h
     assert(ratio_w >= 1 and ratio_h >= 1)
 
     new_vertices = np.zeros(vertices.shape)
@@ -346,10 +344,8 @@ def crop_img(img, vertices, labels, length):
         new_vertices[:,[1,3,5,7]] = vertices[:,[1,3,5,7]] * ratio_h
 
     # find random position
-    remain_h = img.height - length
-    remain_w = img.width - length
-    flag = True
-    cnt = 0
+    remain_h, remain_w = img.height - length, img.width - length
+    flag, cnt = True, 0
     while flag and cnt < 1000:
         cnt += 1
         start_w = int(np.random.rand() * remain_w)
@@ -364,11 +360,10 @@ def crop_img(img, vertices, labels, length):
     new_vertices[:,[1,3,5,7]] -= start_h
     return region, new_vertices
 
-
     pass  # Actual implementation as shown in original code
 
 
-
+# rotation matrix를 입력받고, 모든 pixel에 rotation 적용시킴.
 def rotate_all_pixels(rotate_mat, anchor_x, anchor_y, length):
     '''get rotated locations of all pixels for next stages
     Input:
@@ -380,19 +375,20 @@ def rotate_all_pixels(rotate_mat, anchor_x, anchor_y, length):
         rotated_x : rotated x positions <numpy.ndarray, (length,length)>
         rotated_y : rotated y positions <numpy.ndarray, (length,length)>
     '''
-    x = np.arange(length)
-    y = np.arange(length)
+    x, y = np.arange(length), np.arange(length)
     x, y = np.meshgrid(x, y)
-    x_lin = x.reshape((1, x.size))
-    y_lin = y.reshape((1, x.size))
+    x_lin, y_lin = x.reshape((1, x.size)), y.reshape((1, x.size))
+
     coord_mat = np.concatenate((x_lin, y_lin), 0)
     rotated_coord = np.dot(rotate_mat, coord_mat - np.array([[anchor_x], [anchor_y]])) + \
                                                    np.array([[anchor_x], [anchor_y]])
-    rotated_x = rotated_coord[0, :].reshape(x.shape)
-    rotated_y = rotated_coord[1, :].reshape(y.shape)
+
+    rotated_x, rotated_y = rotated_coord[0, :].reshape(x.shape), rotated_coord[1, :].reshape(y.shape)
+
     return rotated_x, rotated_y
 
 
+# w, h 중에서 큰 값을 기준으로 정사각형 이미지를 만들고, 나머지 부분은 padding 처리
 def resize_img(img, vertices, size):
     h, w = img.height, img.width
     ratio = size / max(h, w)
@@ -405,7 +401,7 @@ def resize_img(img, vertices, size):
 
 
 def adjust_height(img, vertices, ratio=0.2):
-    '''adjust height of image to aug data
+    '''adjust height of image to augment data
     Input:
         img         : PIL Image
         vertices    : vertices of text regions <numpy.ndarray, (n,8)>
@@ -419,12 +415,14 @@ def adjust_height(img, vertices, ratio=0.2):
     new_h = int(np.around(old_h * ratio_h))
     img = img.resize((img.width, new_h), Image.BILINEAR)
 
+    # vertices에 ratio_h 적용
     new_vertices = vertices.copy()
     if vertices.size > 0:
         new_vertices[:,[1,3,5,7]] = vertices[:,[1,3,5,7]] * (new_h / old_h)
     return img, new_vertices
 
 
+# 이미지 내의 텍스트 영역을 잘라내고, 잘라낸 이미지를 정사각형으로 만들기 위해 padding 처리
 def rotate_img(img, vertices, angle_range=10):
     '''rotate image [-10, 10] degree to aug data
     Input:
@@ -435,13 +433,14 @@ def rotate_img(img, vertices, angle_range=10):
         img         : rotated PIL Image
         new_vertices: rotated vertices
     '''
-    center_x = (img.width - 1) / 2
-    center_y = (img.height - 1) / 2
+    center_x, center_y = (img.width - 1) / 2, (img.height - 1) / 2
     angle = angle_range * (np.random.rand() * 2 - 1)  # -10 ~ +10
     img = img.rotate(angle, Image.BILINEAR)
     new_vertices = np.zeros(vertices.shape)
+
     for i, vertice in enumerate(vertices):
         new_vertices[i,:] = rotate_vertices(vertice, -angle / 180 * math.pi, np.array([[center_x],[center_y]]))
+
     return img, new_vertices
 
 
@@ -451,10 +450,14 @@ def generate_roi_mask(image, vertices, labels):
     for vertice, label in zip(vertices, labels):
         if label == 0:
             ignored_polys.append(np.around(vertice.reshape((4, 2))).astype(np.int32))
-    cv2.fillPoly(mask, ignored_polys, 0)
+    cv2.fillPoly(mask, ignored_polys, 0) # 다각형(square)를 그려주는 명령어
     return mask
 
 
+''' [Ln 461 ~ 474]
+- If) 'drop_under'='ignore_under'=0 : filter 실행 X
+- Else) vertices filtering
+'''
 def filter_vertices(vertices, labels, ignore_under=0, drop_under=0):
     if drop_under == 0 and ignore_under == 0:
         return vertices, labels
@@ -471,6 +474,7 @@ def filter_vertices(vertices, labels, ignore_under=0, drop_under=0):
     return new_vertices, new_labels
 
 
+# Add noise using pepper method
 def add_pepper(image, p):
     if np.random.random() < p:
         image = np.array(image)
@@ -501,13 +505,16 @@ class SceneTextDataset(Dataset):
                  binarization=False,
                  color_jitter=False,
                  normalize=False):
-        with open(osp.join(root_dir, 'ufo/{}.json'.format(split)), 'r') as f:
+
+        # Load dataset : ufo 폴대 내부에 여러 개의 json file을 불러옴
+        with open(os.path.join(root_dir, 'ufo/{}.json'.format(split)), 'r') as f:
             anno = json.load(f)
 
         self.anno = anno
         self.image_fnames = sorted(anno['images'].keys())
-        self.image_dir = osp.join(root_dir, 'img/train')
+        self.image_dir = os.path.join(root_dir, 'img/train')
 
+        # Set hyperparameter
         self.image_size = image_size
         self.crop_size = crop_size
         self.augmentation = augmentation
@@ -524,18 +531,18 @@ class SceneTextDataset(Dataset):
         return len(self.image_fnames)
 
     def __getitem__(self, idx):
+        # 1. Load Image and annotation(json)
         image_fname = self.image_fnames[idx]
-        image_fpath = osp.join(self.image_dir, image_fname)
+        image_fpath = os.path.join(self.image_dir, image_fname)
 
         vertices, labels = [], []
         for word_info in self.anno['images'][image_fname]['words'].values():
             word_tags = word_info['tags']
 
+            # 2. Text area filtering
             ignore_sample = any(elem for elem in word_tags if elem in self.ignore_tags)
             num_pts = np.array(word_info['points']).shape[0]
 
-            # skip samples with ignore tag and
-            # samples with number of points greater than 4
             if ignore_sample or num_pts > 4:
                 continue
 
@@ -543,6 +550,7 @@ class SceneTextDataset(Dataset):
             labels.append(int(not word_info['illegibility']))
         vertices, labels = np.array(vertices, dtype=np.float32), np.array(labels, dtype=np.int64)
 
+        # 3. Text area filtering
         vertices, labels = filter_vertices(
             vertices,
             labels,
@@ -550,6 +558,7 @@ class SceneTextDataset(Dataset):
             drop_under=self.drop_under_threshold
         )
 
+        # 4. 이미지 전처리
         image = cv2.imread(image_fpath)
         image = Image.fromarray(image[:, :, ::-1])
         image, vertices = resize_img(image, vertices, self.image_size)
@@ -566,7 +575,7 @@ class SceneTextDataset(Dataset):
             warnings.warn("Only one of augmentation and others should be declared.")
             raise ValueError
 
-        # augmentations
+        # 5. (optional) If augmentation is True -> add_pepper
         funcs = []
         if self.augmentation:
             funcs.append(random_choice_augmentations(1.0))  # random choice augmentations
