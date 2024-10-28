@@ -1,0 +1,43 @@
+{
+  "os":  "Linux-5.4.0-99-generic-x86_64-with-glibc2.31",
+  "python":  "3.10.13",
+  "startedAt":  "2024-10-28T11:26:54.675071Z",
+  "program":  "/data/ephemeral/home/.GitHub/Lv.2-CV21/train.py",
+  "codePath":  "train.py",
+  "git":  {
+    "remote":  "https://github.com/boostcampaitech7/level2-cv-datacentric-cv-21.git",
+    "commit":  "9263d1b020fd44599c3c6166cad98efe85742a55"
+  },
+  "email":  "namgyu.youn@gmail.com",
+  "root":  "/data/ephemeral/home/.GitHub/Lv.2-CV21",
+  "host":  "instance-12997",
+  "username":  "root",
+  "executable":  "/opt/conda/bin/python",
+  "codePathLocal":  "train.py",
+  "cpu_count":  8,
+  "cpu_count_logical":  8,
+  "gpu":  "Tesla V100-SXM2-32GB",
+  "gpu_count":  1,
+  "disk":  {
+    "/":  {
+      "total":  "52573995008",
+      "used":  "38654939136"
+    }
+  },
+  "memory":  {
+    "total":  "94903173120"
+  },
+  "cpu":  {
+    "count":  8,
+    "countLogical":  8
+  },
+  "gpu_nvidia":  [
+    {
+      "name":  "Tesla V100-SXM2-32GB",
+      "memoryTotal":  "34359738368",
+      "cudaCores":  5120,
+      "architecture":  "Volta"
+    }
+  ],
+  "cudaVersion":  "12.2"
+}
