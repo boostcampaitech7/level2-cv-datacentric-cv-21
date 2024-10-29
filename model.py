@@ -66,7 +66,7 @@ class Extractor(nn.Module):
         super().__init__()
         vgg16_bn = VGG(make_layers(cfg, batch_norm=True))
         if pretrained:
-            vgg16_bn.load_state_dict(torch.load('./pths/vgg16_bn-6c64b313.pth'))
+            vgg16_bn.load_state_dict(torch.load('/data/ephemeral/home/.GitHub/pths/vgg16_bn-6c64b313.pth'))
         self.features = vgg16_bn.features
 
     def forward(self, x):
