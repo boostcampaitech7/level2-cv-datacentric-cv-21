@@ -495,7 +495,7 @@ def random_choice_augmentations(propability):
 
 class SceneTextDataset(Dataset):
     def __init__(self, root_dir,
-                 split='train',  # 기본값 'train'을 유지하고 split에 따라 파일명을 결정
+                 split='train',
                  image_size=2048,
                  crop_size=1024,
                  ignore_tags=[],
@@ -506,20 +506,13 @@ class SceneTextDataset(Dataset):
                  color_jitter=False,
                  normalize=False):
 
-        # split을 기반으로 파일명 지정
-        json_path = os.path.join(root_dir, 'ufo', f"{split}.json")
-
-        # 파일이 존재하지 않으면 에러 발생
-        if not os.path.exists(json_path):
-            raise FileNotFoundError(f"JSON 파일을 찾을 수 없습니다: {json_path}")
-
-        # JSON 파일 로드
-        with open(json_path, 'r') as f:
+        # Load dataset : ufo 폴대 내부에 여러 개의 json file을 불러옴
+        with open(os.path.join(root_dir, 'ufo/{}.json'.format(split)), 'r') as f:
             anno = json.load(f)
 
         self.anno = anno
         self.image_fnames = sorted(anno['images'].keys())
-        self.image_dir = os.path.join(root_dir, 'img/train')  # 이미지 디렉토리 경로 설정
+        self.image_dir = os.path.join(root_dir, 'img/train')
 
         # Set hyperparameter
         self.image_size = image_size
@@ -537,8 +530,6 @@ class SceneTextDataset(Dataset):
     def __len__(self):
         return len(self.image_fnames)
 
-    # dataset.py
-
     def __getitem__(self, idx):
         # 1. Load Image and annotation(json)
         image_fname = self.image_fnames[idx]
@@ -546,7 +537,9 @@ class SceneTextDataset(Dataset):
 
         vertices, labels = [], []
         for word_info in self.anno['images'][image_fname]['words'].values():
-            word_tags = word_info.get('tags', [])
+            word_tags = word_info['tags']
+
+            # 2. Text area filtering
             ignore_sample = any(elem for elem in word_tags if elem in self.ignore_tags)
             num_pts = np.array(word_info['points']).shape[0]
 
@@ -554,10 +547,10 @@ class SceneTextDataset(Dataset):
                 continue
 
             vertices.append(np.array(word_info['points']).flatten())
-            labels.append(int(not word_info.get('illegibility', False)))
-
+            labels.append(int(not word_info['illegibility']))
         vertices, labels = np.array(vertices, dtype=np.float32), np.array(labels, dtype=np.int64)
 
+        # 3. Text area filtering
         vertices, labels = filter_vertices(
             vertices,
             labels,
@@ -565,19 +558,22 @@ class SceneTextDataset(Dataset):
             drop_under=self.drop_under_threshold
         )
 
-        # 4. Load image and resize, augment, etc.
+        # 4. 이미지 전처리
         image = cv2.imread(image_fpath)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
-        image = Image.fromarray(image)
-
-        # Image processing steps
+        image = Image.fromarray(image[:, :, ::-1])
         image, vertices = resize_img(image, vertices, self.image_size)
         image, vertices = adjust_height(image, vertices)
         image, vertices = rotate_img(image, vertices)
         image, vertices = crop_img(image, vertices, labels, self.crop_size)
 
-        # PIL 이미지를 numpy 배열로 변환
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
         image = np.array(image)
+
+        # exception
+        if self.augmentation and any([self.binarization, self.color_jitter, self.normalize]):
+            warnings.warn("Only one of augmentation and others should be declared.")
+            raise ValueError
 
         # 5. (optional) If augmentation is True -> add_pepper
         funcs = []
@@ -593,15 +589,8 @@ class SceneTextDataset(Dataset):
         if self.normalize:
             funcs.append(A.Normalize(mean=(0.89, 0.88, 0.88), std=(0.16, 0.17, 0.17)))
 
-        # albumentations transform 적용
         transform = A.Compose(funcs)
-
-        # 변환을 적용하기 전에, `image`가 확실히 numpy 배열인지 확인
-        if not isinstance(image, np.ndarray):
-            image = np.array(image)
-
         image = transform(image=image)['image']
-
         word_bboxes = np.reshape(vertices, (-1, 4, 2))
         roi_mask = generate_roi_mask(image, vertices, labels)
 
