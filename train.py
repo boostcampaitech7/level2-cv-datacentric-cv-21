@@ -12,7 +12,6 @@ from torch import cuda
 from torch.utils.data import DataLoader
 from torch.optim import lr_scheduler
 
-# east_dataset이 repo에 없길래, 구글링해서 3기 기수 분들의 파일 불러옴. 작동 확인X
 from east_dataset import EASTDataset
 from dataset import SceneTextDataset
 from model import EAST
@@ -76,16 +75,17 @@ def do_training(config, seed, data_dir, train_ann, valid_ann, model_dir, device,
 
     # checkpoint directory initialization
     model_dir = increment_path(os.path.join(model_dir, wandb_name))
-    model_name = model_dir.split("/")[-1]
+    model_name = model_dir.split("/")[-1] # model dir만 추출
 
     # logging with config.json
     with open(os.path.join(model_dir, f"{model_name}.json"), "w", encoding="utf-8") as f:
         json.dump(vars(config), f, ensure_ascii=False, indent=4)
 
-    # logging with wandb
-    wandb.init(project="level2_data_centric",
+
+    wandb.init(project="Lv.2_data_centric",
                name=model_name,
                config=config)
+
 
     train_dataset = SceneTextDataset(
         data_dir,
@@ -172,6 +172,7 @@ def do_training(config, seed, data_dir, train_ann, valid_ann, model_dir, device,
                 "Learning Rate": scheduler.get_last_lr()[0],
                 "Seed": seed
             })
+
 
         train_end = time.time() - train_start
         print("Train Mean loss: {:.4f} || Elapsed time: {} || ETA: {}".format(
