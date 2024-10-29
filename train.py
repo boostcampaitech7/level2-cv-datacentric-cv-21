@@ -1,5 +1,4 @@
 import os
-import os.path as osp
 import time
 import math
 import json
@@ -75,7 +74,7 @@ def do_training(config, seed, dataset_path, model_dir, device, image_size, input
     # 모델 디렉토리 설정
     model_dir = increment_path(os.path.join(model_dir, wandb_name))
     os.makedirs(model_dir, exist_ok=True)
-    model_name = osp.basename(model_dir)
+    model_name = os.path.basename(model_dir)
 
     # config.json 로그 파일 저장
     with open(os.path.join(model_dir, f"{model_name}.json"), "w", encoding="utf-8") as f:
@@ -176,7 +175,7 @@ def do_training(config, seed, dataset_path, model_dir, device, image_size, input
             mean_val_loss = valid_loss / valid_num_batches
             if best_val_loss > mean_val_loss:
                 best_val_loss = mean_val_loss
-                ckpt_fpath = osp.join(model_dir, f"best_epoch_{epoch+1}.pth")
+                ckpt_fpath = os.path.join(model_dir, f"best_epoch_{epoch+1}.pth")
                 torch.save(model.state_dict(), ckpt_fpath)
                 counter = 0
             else:
@@ -197,7 +196,7 @@ def main(args):
 
     for language in languages:
         print(f"Starting training for {language}")
-        dataset_path = osp.join(args.data_dir, language)
+        dataset_path = os.path.join(args.data_dir, language)
 
         # wandb 이름을 언어별로 지정하여 구분 가능하도록 설정
         args.wandb_name = f"{language}_run"
