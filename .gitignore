@@ -1,0 +1,53 @@
+# Generated and compiled files
+*.pyc
+*.o
+*.exe
+
+# Build and packaged files
+__pycache__
+dist
+build
+egg-info
+
+# IDE and Editor files
+.vscode
+.idea
+.pycharm.debug
+.cache
+
+# Virtual environment files
+venv
+.env
+
+# Source code management files
+.svn
+.git
+
+# Graphical User Interface files
+.DS_Store
+Thumbs.db
+
+# Backup and temporary files
+*.bak
+*.tmp
+*.swp
+
+# Third-party libraries
+node_modules
+vendor
+
+# Log files
+*.log
+lightning_logs
+*.csv
+
+# Operating system files
+.AppleDouble
+.LSOverride
+Desktop.ini
+
+data/
+logs/
+z_mine/
+wandb/
+artifacts/
