@@ -16,13 +16,12 @@ def cal_distance(x1, y1, x2, y2):
     return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
 
 
-''' [Ln 24 ~ 59]
+''' [Ln 23 ~ 55]
 - Text area의 모서리를 안쪽으로 수축시킴
 - 사각형의 두 점을 이동시켜서 경계를 축소함
 '''
 def move_points(vertices, index1, index2, r, coef):
     """Move two points to shrink the edge of a text region.
-
     Args:
         vertices (np.ndarray): Text region vertices of shape (8,)
                              Format: [x1,y1, x2,y2, x3,y3, x4,y4]
@@ -30,10 +29,8 @@ def move_points(vertices, index1, index2, r, coef):
         index2 (int): Index of second point to move (0-3)
         r (list): Shrink ratios for each corner [r1,r2,r3,r4]
         coef (float): Global shrink coefficient (0-1)
-
     Returns:
         np.ndarray: Modified vertices array
-
     Raises:
         ValueError: If input parameters are invalid
     """
@@ -58,7 +55,7 @@ def move_points(vertices, index1, index2, r, coef):
     return vertices
 
 
-''' [Ln 68 ~ ]
+''' [Ln 63 ~ 124]
 - 텍스트 영역을 나타내는 4개의 꼭짓점 좌표를 입력받아 내부로 축소하는 함수입니다
 - 각 모서리에서 가장 짧은 변의 길이를 기준으로 축소 비율을 적용합니다
 - 긴 변을 기준으로 offset을 결정하여 축소 순서를 정합니다
@@ -66,11 +63,9 @@ def move_points(vertices, index1, index2, r, coef):
 def shrink_poly(vertices, coef=0.3):
     """
     텍스트 영역을 축소하는 함수
-
     Args:
         vertices (list): [x1,y1,x2,y2,x3,y3,x4,y4] 형식의 텍스트 영역 꼭짓점 좌표
         coef (float): 축소 비율 (기본값: 0.3)
-
     Returns:
         list: 축소된 텍스트 영역의 꼭짓점 좌표
     """
@@ -135,7 +130,7 @@ def get_rotate_mat(theta):
                      [math.sin(theta), math.cos(theta)]])
 
 
-''' [Ln 145 ~ ]
+''' [Ln 138 ~ 165]
 - "Process" : vertices(8,) -> v(4, 2) -> 회전 -> v(4, 2) -> vertices(8,)
 - theta : 회전할 각도 (radian)
 - anchor : 회전의 중심점. None=첫 번째 곡짓점
@@ -143,14 +138,11 @@ def get_rotate_mat(theta):
 def rotate_vertices(vertices, theta, anchor=None):
     """
     텍스트 영역의 꼭짓점들을 주어진 각도로 회전시킵니다.
-
     Args:
         anchor (numpy.ndarray, optional): 회전의 중심점.
             None인 경우 첫 번째 꼭짓점을 기준으로 함
-
     Returns:
         numpy.ndarray: 회전된 꼭짓점들의 좌표 (8,)
-
     Raises:
         ValueError: vertices가 올바른 형태가 아닌 경우
     """
@@ -198,7 +190,7 @@ def cal_error(vertices):
     return err
 
 
-''' [Ln 209 ~ 262]
+''' [Ln 200 ~ 251]
 - 텍스트 영역을 감싸는 최소 면적의 직사각형을 만드는 최적의 회전 각도를 찾습니다.
 Process:
     1. -90도에서 90도까지 각도를 바꿔가며 회전된 영역의 경계 상자 면적 계산
@@ -212,7 +204,6 @@ def find_min_rect_angle(vertices: np.ndarray,
     Args:
         - angle_interval (int): 각도 탐색 간격 (기본값: 1도)
         - rank_num (int): 검토할 상위 후보 각도 수 (기본값: 10)
-
     Returns: 최적의 회전 각도 (radian)
     '''
     # 입력 검증
@@ -272,7 +263,6 @@ def is_cross_text(start_loc,
         vertices (np.ndarray): [x1,y1,x2,y2,x3,y3,x4,y4]
         intersection_threshold (Tuple[float, float]):
             교차 판정을 위한 (최소, 최대) 면적 비율 (기본값: (0.01, 0.99))
-
     Returns: Area(text), Area(crop)이 겹치는 경우를 근거로 판단함.
         - True : '일부만' 겹치는 경우 (0.01 ~ 0.99)
         - False : 전혀 겹치지 않거나 완전히 포함되는 경우 (~ 0.01, 0.99 ~)
@@ -323,7 +313,7 @@ def is_cross_text(start_loc,
     return False
 
 
-''' [Ln 332 ~ 365]
+''' [Ln 320 ~ 352]
 - Crop image가 Text area를 적당히 포함하는지 확인하고, 만약 그렇지 않다면 vertex를 적당히 조절함.
 - Image resizing, random crop 사용 : Text Intersection 방지 목적
 '''
@@ -453,7 +443,7 @@ def generate_roi_mask(image, vertices, labels):
     return mask
 
 
-''' [Ln 461 ~ 474]
+''' [Ln 450 ~ 463]
 - If) 'drop_under'='ignore_under'=0 : filter 실행 X
 - Else) vertices filtering
 '''
