@@ -31,7 +31,32 @@
 
 4. Error
 ```
-
+Traceback (most recent call last):
+  File "/data/ephemeral/home/.GitHub/level2-cv-datacentric-cv-21/train.py", line 254, in <module>
+    main(args)
+  File "/data/ephemeral/home/.GitHub/level2-cv-datacentric-cv-21/train.py", line 248, in main
+    do_training(args, **args.__dict__)
+  File "/data/ephemeral/home/.GitHub/level2-cv-datacentric-cv-21/train.py", line 146, in do_training
+    for idx, (img, gt_score_map, gt_geo_map, roi_mask) in enumerate(train_loader):
+  File "/opt/conda/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 630, in __next__
+    data = self._next_data()
+  File "/opt/conda/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1345, in _next_data
+    return self._process_data(data)
+  File "/opt/conda/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1371, in _process_data
+    data.reraise()
+  File "/opt/conda/lib/python3.10/site-packages/torch/_utils.py", line 694, in reraise
+    raise exception
+KeyError: Caught KeyError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/opt/conda/lib/python3.10/site-packages/torch/utils/data/_utils/worker.py", line 308, in _worker_loop
+    data = fetcher.fetch(index)
+  File "/opt/conda/lib/python3.10/site-packages/torch/utils/data/_utils/fetch.py", line 51, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/opt/conda/lib/python3.10/site-packages/torch/utils/data/_utils/fetch.py", line 51, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/data/ephemeral/home/.GitHub/level2-cv-datacentric-cv-21/east_dataset.py", line 136, in __getitem__
+    image, word_bboxes, roi_mask = self.dataset[idx]
+  File "/data/ephemeral/home/.GitHub/level2-cv-datacentric-cv-21/dataset.py", line 540, in __getitem__
+    word_tags = word_info['tags']
+KeyError: 'tags'
 ```
-
-5. To-Do : 4개 언어 별로 학습된 model의 inference를 결합하는 방식으로 최종 model을 생성하는 방식을 구현 필요.
