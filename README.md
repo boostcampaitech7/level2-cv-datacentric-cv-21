@@ -1,14 +1,12 @@
-- 수정 불가한 file : detect.py, east_dataset.py, loss.py, model.py
 
-1. train.py
+1. 대회의 규정상 수정이 불가한 파일들은 'baseline' 폴더 안에 있습니다.
+2. train.py
     - Main 실행 파일입니다. WanDB 접속 등 다양한 custom option을 제공하며, 다른 코드의 내용을 적절하게 불러와 사용합니다.
-    - 이 파일을 실행하기 위해서는 '../data' 안에 train dataset이 위치해야 합니다.
-<br/>
-2. dataset.py
+    - 이 파일을 실행하기 위해서는 '../data' 경로에 train dataset이 위치해야 합니다.
+3. dataset.py
     - dataset에 모든 EDA 기법을 적용시키는 script file 입니다.
     - Matrix Transform (Rotation), Denosing, Super Resolution 등등의 기법을 수행합니다.
-<br/>
-3. 'train.py'를 실행하기 위해서는 아래의 tree 구조가 필요합니다.
+4. 'train.py'를 실행하기 위해서는 아래의 tree 구조가 필요합니다.
 
 
 ```
