@@ -9,9 +9,9 @@ from datetime import timedelta
 import torch
 import cv2
 from torch import cuda
-from model import EAST
+from baseline.model import EAST #
 
-from detect import detect
+from baseline.detect import detect #
 from utils import increment_path
 
 CHECKPOINT_EXTENSIONS = [".pth", ".ckpt"]
@@ -46,7 +46,7 @@ def do_inference(model, ckpt_fpath, data_dir, input_size, batch_size, split="tes
     images = []
     for image_fpath in tqdm(glob(os.path.join(data_dir, "img/{}/*".format(split)))):
         image_fnames.append(os.path.basename(image_fpath))
-        
+
         images.append(cv2.imread(image_fpath)[:, :, ::-1])
         if len(images) == batch_size:
             by_sample_bboxes.extend(detect(model, images, input_size))

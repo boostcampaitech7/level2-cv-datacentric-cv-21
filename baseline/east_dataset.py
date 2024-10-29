@@ -5,7 +5,10 @@ import numpy as np
 import cv2
 from torch.utils.data import Dataset
 
-
+''' [Ln ~]
+- shrink : (규모 등을) 줄어들게 하다
+- BBox의 shape을 유지하면서, 아 이게 무슨 내용이야 도대체..
+'''
 def shrink_bbox(bbox, coef=0.3, inplace=False):
     lens = [np.linalg.norm(bbox[i] - bbox[(i + 1) % 4], ord=2) for i in range(4)]
     r = [min(lens[(i - 1) % 4], lens[i]) for i in range(4)]
