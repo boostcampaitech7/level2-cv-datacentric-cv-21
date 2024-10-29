@@ -19,7 +19,6 @@ from utils import increment_path
 import wandb
 import numpy as np
 
-
 def parse_args():
     parser = ArgumentParser()
 
