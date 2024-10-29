@@ -7,7 +7,7 @@
     - dataset에 모든 EDA 기법을 적용시키는 script file 입니다.
     - Matrix Transform (Rotation), Denosing, Super Resolution 등등의 기법을 수행합니다.
 
-3. tools
+3. tools (optional)
     - merge_ufo.py : ufo 폴더 안에 위치한 json file 들을 병합합니다. 병합할 내용은 'chinese_train.json', 'japanese_train.json', 'thai_train.json', 'vietnamese_train.json' 입니다. 병합된 결과는 'merged_ufo.json' 파일로 저장됩니다.
     - split_ufo.py : 'merged_ufo.json' 파일을 train과 validation set으로 나눕니다. 나눠진 결과는 'train1.json'과 'valid1.json' 파일로 저장됩니다.
     - 해당 코드를 정상적으로 실행한 뒤에, 'data' 폴더 이름을 'dataset'으로 변경해주세요. 정상적으로 실행된 폴더의 트리 구조는 아래와 같습니다.
