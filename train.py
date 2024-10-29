@@ -1,10 +1,9 @@
 import os
+import os.path as osp
 import time
 import math
 import json
 import random
-import wandb
-import numpy as np
 from datetime import timedelta
 from argparse import ArgumentParser
 
@@ -13,10 +12,13 @@ from torch import cuda
 from torch.utils.data import DataLoader, random_split
 from torch.optim import lr_scheduler
 
-from baseline.east_dataset import EASTDataset #
-from dataset import SceneTextDataset #
+from baseline.east_dataset import EASTDataset
+from dataset import SceneTextDataset
 from baseline.model import EAST
 from utils import increment_path
+
+import wandb
+import numpy as np
 
 
 def parse_args():
@@ -24,7 +26,7 @@ def parse_args():
 
     # Conventional args
     parser.add_argument("--seed", type=int, default=4669)
-    parser.add_argument("--data_dir", type=str, default="../dataset")
+    parser.add_argument("--data_dir", type=str, default="../data")
     parser.add_argument("--model_dir", type=str, default="trained_models")
     parser.add_argument("--device", default="cuda" if cuda.is_available() else "cpu")
     parser.add_argument("--num_workers", type=int, default=8)
@@ -73,14 +75,14 @@ def do_training(config, seed, dataset_path, model_dir, device, image_size, input
     # 모델 디렉토리 설정
     model_dir = increment_path(os.path.join(model_dir, wandb_name))
     os.makedirs(model_dir, exist_ok=True)
-    model_name = os.path.basename(model_dir)
+    model_name = osp.basename(model_dir)
 
     # config.json 로그 파일 저장
     with open(os.path.join(model_dir, f"{model_name}.json"), "w", encoding="utf-8") as f:
         json.dump(vars(config), f, ensure_ascii=False, indent=4)
 
     # wandb 로깅 설정
-    wandb.init(project="level2_data_centric", name=model_name, config=config)
+    wandb.init(project="Lv.2_data_centric", name=model_name, config=config)
 
     # 데이터셋 초기화
     full_dataset = SceneTextDataset(
@@ -174,7 +176,7 @@ def do_training(config, seed, dataset_path, model_dir, device, image_size, input
             mean_val_loss = valid_loss / valid_num_batches
             if best_val_loss > mean_val_loss:
                 best_val_loss = mean_val_loss
-                ckpt_fpath = os.path.join(model_dir, f"best_epoch_{epoch+1}.pth")
+                ckpt_fpath = osp.join(model_dir, f"best_epoch_{epoch+1}.pth")
                 torch.save(model.state_dict(), ckpt_fpath)
                 counter = 0
             else:
@@ -195,7 +197,7 @@ def main(args):
 
     for language in languages:
         print(f"Starting training for {language}")
-        dataset_path = os.path.join(args.data_dir, language)
+        dataset_path = osp.join(args.data_dir, language)
 
         # wandb 이름을 언어별로 지정하여 구분 가능하도록 설정
         args.wandb_name = f"{language}_run"

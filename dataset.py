@@ -526,7 +526,6 @@ class SceneTextDataset(Dataset):
     def __len__(self):
         return len(self.image_fnames)
 
-    # dataset.py
 
     def __getitem__(self, idx):
         # 1. Load Image and annotation(json)
