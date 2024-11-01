@@ -31,6 +31,7 @@ Thumbs.db
 *.bak
 *.tmp
 *.swp
+*.pth
 
 # Third-party libraries
 node_modules
