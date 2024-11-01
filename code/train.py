@@ -67,123 +67,101 @@ def parse_args():
 
     return args
 
-def do_training(args):
+def do_training(data_dir, model_dir, device, image_size, input_size, num_workers, batch_size,
+                learning_rate, max_epoch, save_interval, seed, fold, val_interval,
+                optimizer, scheduler, resume):
+    print("Training started...")  # 시작 지점 출력
+
+    # Set seed for reproducibility
+    torch.manual_seed(seed)
+    if cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+    # Dataset Initialization
+    print("Initializing dataset...")
+    dataset = SceneTextDataset(
+        root_dir=data_dir,
+        split='train',
+        image_size=image_size,
+        crop_size=input_size,
+        color_jitter=True,
+        normalize=True
+    )
+    print(f"Dataset initialized with {len(dataset)} samples.")
+    dataset = EASTDataset(dataset)
     
-    for data_dir, train_dataset_dir in zip(args.data_dirs, args.train_dataset_dirs):
-        
-        ### Train Loader ###
-        if args.data == 'pickle':
-            train_dataset = PickleDataset(train_dataset_dir)
-        else:
-            train_dataset = SceneTextDataset(
-                data_dir,
-                split='train',
-                json_name=f'train{args.fold}.json',
-                image_size=args.image_size,
-                crop_size=args.input_size,
-                ignore_tags=args.ignore_tags,
-                pin_memory=True,
-            )
-            train_dataset = EASTDataset(train_dataset)
-        
-        train_num_batches = math.ceil(len(train_dataset) / args.batch_size)
-        train_loader = DataLoader(
-            train_dataset,
-            batch_size=args.batch_size,
-            shuffle=True,
-            num_workers=args.num_workers,
-            pin_memory=True
-        )
-        
-        ### Val Loader ###
-        valid_json_file = f'ufo/valid{args.fold}.json'
-        val_images = []
-        if osp.exists(osp.join(data_dir, valid_json_file)):
-            with open(osp.join(data_dir, valid_json_file), 'r', encoding='utf-8') as file:
-                val_data = json.load(file)
-            val_images = list(val_data['images'].keys())
+    num_batches = math.ceil(len(dataset) / batch_size)
+    train_loader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers
+    )
 
-        model = EAST().to(args.device)
-        
-        ### Resume or finetune ###
-        save_dir = osp.join(args.model_dir, f'{args.max_epoch}e_{args.optimizer}_{args.scheduler}_{args.learning_rate}_{osp.basename(data_dir)}')
-        os.makedirs(save_dir, exist_ok=True)
+    device = torch.device(device)
+    model = EAST().to(device)
 
-        if args.resume == "resume" and osp.exists(osp.join(save_dir, "latest.pth")):
-            checkpoint = torch.load(osp.join(save_dir, "latest.pth"))
-            model.load_state_dict(checkpoint)
-        elif args.resume == "finetune" and osp.exists(osp.join(save_dir, "best.pth")):
-            checkpoint = torch.load(osp.join(save_dir, "best.pth"))
-            model.load_state_dict(checkpoint)
-        
-        optimizer = optim(args, filter(lambda p: p.requires_grad, model.parameters()))
-        scheduler = sched(args, optimizer)
-        
-        ### WandB ###
-        if args.mode == 'on':
-            wandb.init(
-                project=args.project,
-                entity='cv-21',
-                group=osp.basename(data_dir),
-                name=f'{args.max_epoch}e_{args.optimizer}_{args.scheduler}_{args.learning_rate}_{osp.basename(data_dir)}'
-            )
-            wandb.config.update(args)
-            wandb.watch(model)
-        
-        ### Training Loop ###
-        best_f1_score = 0
-        for epoch in range(args.max_epoch):
-            model.train()
-            with tqdm(total=train_num_batches) as pbar:
-                for img, gt_score_map, gt_geo_map, roi_mask in train_loader:
-                    loss, extra_info = model.train_step(img, gt_score_map, gt_geo_map, roi_mask)
-                    optimizer.zero_grad()
-                    loss.backward()
-                    optimizer.step()
-                    
-                    train_dict = {
-                        'train total loss': loss.item(),
-                        'train cls loss': extra_info['cls_loss'],
-                        'train angle loss': extra_info['angle_loss'],
-                        'train iou loss': extra_info['iou_loss']
-                    }
-                    pbar.update(1)
-                    pbar.set_postfix(train_dict)
-                    if args.mode == 'on':
-                        wandb.log(train_dict, step=epoch)
+    # Optimizer setup
+    optimizer = optim(optimizer, learning_rate, model.parameters())
 
-            scheduler.step()
+    # Scheduler setup
+    if scheduler == 'multistep':
+        scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[max_epoch // 2], gamma=0.1)
+    elif scheduler == 'cosine':
+        scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=max_epoch)
 
-            ### Validation (Every val_interval or last 5 epochs) ###
-            if (epoch + 1) % args.val_interval == 0 or epoch >= args.max_epoch - 5:
-                print("Calculating validation results...")
-                pred_bboxes_dict = get_pred_bboxes(model, data_dir, val_images, args.input_size, args.batch_size, split='train')            
-                gt_bboxes_dict = get_gt_bboxes(data_dir, json_file=valid_json_file, valid_images=val_images)
-                result = calc_deteval_metrics(pred_bboxes_dict, gt_bboxes_dict)
-                precision, recall = result['total']['precision'], result['total']['recall']
-                f1_score = 2*precision*recall/(precision+recall) if precision + recall > 0 else 0
-                print(f'Precision: {precision} Recall: {recall} F1 Score: {f1_score}')
+    # Resume training if specified
+    if resume == 'resume' and osp.exists(osp.join(model_dir, 'latest.pth')):
+        model.load_state_dict(torch.load(osp.join(model_dir, 'latest.pth')))
+        print("Resumed training from latest checkpoint.")
+    elif resume == 'finetune' and osp.exists(osp.join(model_dir, 'latest.pth')):
+        model.load_state_dict(torch.load(osp.join(model_dir, 'latest.pth')), strict=False)
+        print("Finetuning from latest checkpoint.")
 
-                val_dict = {'val precision': precision, 'val recall': recall, 'val f1_score': f1_score}
-                if args.mode == 'on':
-                    wandb.log(val_dict, step=epoch)
-                
-                if f1_score > best_f1_score:
-                    best_f1_score = f1_score
-                    torch.save(model.state_dict(), osp.join(save_dir, 'best.pth'))
+    ### WandB ###
+    wandb.init(project='level2OCR', config={'learning_rate': learning_rate, 'optimizer': optimizer})
+    wandb.watch(model)
 
-            # Save latest model
-            if (epoch + 1) % args.save_interval == 0:
-                torch.save(model.state_dict(), osp.join(save_dir, 'latest.pth'))
+    # Training loop
+    model.train()
+    for epoch in range(max_epoch):
+        epoch_loss, epoch_start = 0, time.time()
+        with tqdm(total=num_batches) as pbar:
+            for img, gt_score_map, gt_geo_map, roi_mask in train_loader:
+                pbar.set_description('[Epoch {}]'.format(epoch + 1))
 
-        if args.mode == 'on':
-            wandb.alert('Training Task Finished', f"Best F1 Score: {best_f1_score:.4f}")
-            wandb.finish()
+                loss, extra_info = model.train_step(img, gt_score_map, gt_geo_map, roi_mask)
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
 
-def main(args):
-    do_training(args)
+                loss_val = loss.item()
+                epoch_loss += loss_val
+
+                pbar.update(1)
+                val_dict = {
+                    'Cls loss': extra_info['cls_loss'], 'Angle loss': extra_info['angle_loss'],
+                    'IoU loss': extra_info['iou_loss']
+                }
+                pbar.set_postfix(val_dict)
+
+        scheduler.step()
+
+        print('Mean loss: {:.4f} | Elapsed time: {}'.format(
+            epoch_loss / num_batches, timedelta(seconds=time.time() - epoch_start)))
+
+        if (epoch + 1) % save_interval == 0:
+            if not osp.exists(model_dir):
+                os.makedirs(model_dir)
+
+            ckpt_fpath = osp.join(model_dir, 'latest.pth')
+            torch.save(model.state_dict(), ckpt_fpath)
+    wandb.finish()
+
+def main():
+    wandb.init(project='level2OCR', config=default_config)  # Sweep 설정을 위한 기본 설정
+    do_training()
 
 if __name__ == '__main__':
-    args = parse_args()
-    seed_everything(args.seed)
-    main(args)
+    print("Starting train.py...")
+    main()

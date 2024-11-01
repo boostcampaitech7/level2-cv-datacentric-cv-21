@@ -18,7 +18,7 @@ def main():
     ignore_tags = ['masked', 'excluded-region', 'maintable', 'stamp']
     
     custom_augmentation_dict = {
-        'CJ': A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2, p=0.5),
+        'CJ': A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2, p=0.1),
         'GB': A.GaussianBlur(blur_limit=(3, 7), p=0.5),
         'B': A.Blur(blur_limit=7, p=0.5),
         'GN': A.GaussNoise(p=0.5),
