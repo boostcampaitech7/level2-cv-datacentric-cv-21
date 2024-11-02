@@ -19,13 +19,13 @@ def main():
     
     custom_augmentation_dict = {
         'CJ': A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2, p=0.1),
-        'GB': A.GaussianBlur(blur_limit=(3, 7), p=0.5),
+        'GB': A.GaussianBlur(blur_limit=(3, 4), p=0.3),
         'B': A.Blur(blur_limit=7, p=0.5),
         'GN': A.GaussNoise(p=0.5),
         'HSV': A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
         'RBC': A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
-        'N': A.Normalize(mean=(0.7760271717131425, 0.7722186515548635, 0.7670997062399484), 
-                        std=(0.17171108542242774, 0.17888224507630185, 0.18678791254805846), p=1.0)
+        'N': A.Normalize(mean=(0.6831708235495132, 0.6570838514500981, 0.6245893701608299), 
+                        std=(0.19835448743425943, 0.20532970462804873, 0.21117810051894778), p=1.0)
     }
     
     image_size = [1024, 1536, 2048]
