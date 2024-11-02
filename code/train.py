@@ -140,6 +140,14 @@ def do_training(args):
             pin_memory=True
         )
 
+        ### Val Loader ###
+        valid_json_file = f'ufo/valid{args.fold}.json'
+        val_images = []
+        if osp.exists(osp.join(data_dir, valid_json_file)):
+            with open(osp.join(data_dir, valid_json_file), 'r', encoding='utf-8') as file:
+                val_data = json.load(file)
+            val_images = list(val_data['images'].keys())
+        
         best_f1_score = 0
         for epoch in range(args.max_epoch):
             model.train()
