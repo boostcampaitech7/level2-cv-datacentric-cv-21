@@ -19,7 +19,7 @@ def main():
     
     custom_augmentation_dict = {
         'CJ': A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2, p=0.1),
-        'GB': A.GaussianBlur(blur_limit=(3, 4), p=0.3),
+        'GB': A.GaussianBlur(blur_limit=(3, 7), p=0.3),
         'B': A.Blur(blur_limit=7, p=0.5),
         'GN': A.GaussNoise(p=0.5),
         'HSV': A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
