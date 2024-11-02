@@ -97,8 +97,11 @@ def create_transforms(args):
 
 
 def do_training(args):
-    save_dir = args.save_dir 
-    os.makedirs(save_dir, exist_ok=True)
+    for data_dir, train_dataset_dir in zip(args.data_dirs, args.train_dataset_dirs):
+        dataset_name = osp.basename(data_dir)  # 데이터셋 이름 추출
+        save_dir = osp.join(args.save_dir, dataset_name)  # 데이터셋별 저장 경로 생성
+        os.makedirs(save_dir, exist_ok=True)
+
     transform = create_transforms(args)
 
     for data_dir, train_dataset_dir in zip(args.data_dirs, args.train_dataset_dirs):
