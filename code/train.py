@@ -61,7 +61,6 @@ def parse_args():
     parser.add_argument("--resume", type=str, default=None, choices=[None, 'resume', 'finetune'])
     parser.add_argument('--no-color_jitter', action='store_false', dest='color_jitter', default=True, help='Disable color jitter augmentation (default: True)')
     parser.add_argument('--no-normalize', action='store_false', dest='normalize', default=True, help='Disable normalization (default: True)')
-    parser.add_argument('--apply_flip', action='store_true', help='Apply horizontal flip (default: False)')
     parser.add_argument('--apply_rotate', action='store_true', help='Apply random rotate 90 (default: False)')
     parser.add_argument('--apply_blur', action='store_true', help='Apply Gaussian blur (default: False)')
     parser.add_argument('--save_dir', type=str, default=os.path.join(os.environ.get('SM_MODEL_DIR', 'trained_models'), 'saved_models'),
@@ -79,11 +78,8 @@ def create_transforms(args):
     if args.color_jitter:
         funcs.append(A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1))
 
-    if args.apply_flip:
-        funcs.append(A.HorizontalFlip(p=0.5))
-
     if args.apply_rotate:
-        funcs.append(A.RandomRotate90(p=0.5))
+        funcs.append(A.Rotate(limit=10, p=0.5))
 
     if args.apply_blur:
         funcs.append(A.GaussianBlur(blur_limit=(3, 7), p=0.3))
