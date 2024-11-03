@@ -21,10 +21,10 @@ def parse_args():
 
     # Conventional args
     parser.add_argument('--model_dir', nargs='+', type=str, default=[
-        "/data/ephemeral/home/github/code/trained_models/150e_Adam_cosine_0.001_chinese_receipt",
-        "/data/ephemeral/home/github/code/trained_models/150e_Adam_cosine_0.001_japanese_receipt",
-        "/data/ephemeral/home/github/code/trained_models/150e_Adam_cosine_0.001_thai_receipt",
-        "/data/ephemeral/home/github/code/trained_models/150e_Adam_cosine_0.001_vietnamese_receipt"
+        "/data/ephemeral/home/github/saved_models/chinese_receipt",
+        "/data/ephemeral/home/github/saved_models/japanese_receipt",
+        "/data/ephemeral/home/github/saved_models/thai_receipt",
+        "/data/ephemeral/home/github/saved_models/vietnamese_receipt"
         ])
     parser.add_argument('--data_dirs', nargs='+', type=str, default=[
         "/data/ephemeral/home/data/chinese_receipt",
