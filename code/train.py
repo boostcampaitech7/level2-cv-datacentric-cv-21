@@ -91,7 +91,7 @@ def create_transforms(args):
 
     def conditional_resize(image, scale_limit=(1.2, 1.5), **kwargs):
         h, w = image.shape[:2]
-        if h < args.input_size or w < args.input_size:
+        if h < args.input_size or w < args.input_size: # h나 w가 둘 중에 하나라도 input_size(default:1024)보다 작으면 1.2~1.5배 사이즈 키우기
             transform = A.RandomScale(scale_limit=scale_limit, p=1.0)
             image = transform(image=image)['image']
         return image
