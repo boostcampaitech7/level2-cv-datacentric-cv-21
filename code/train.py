@@ -102,9 +102,6 @@ def do_training(args):
         save_dir = osp.join(args.save_dir, dataset_name)  # 데이터셋별 저장 경로 생성
         os.makedirs(save_dir, exist_ok=True)
 
-    transform = create_transforms(args)
-
-    for data_dir, train_dataset_dir in zip(args.data_dirs, args.train_dataset_dirs):
         model = EAST().to(args.device)
         optimizer = optim(args.optimizer, args.learning_rate, model.parameters())
         scheduler = sched(args, optimizer)
@@ -115,10 +112,10 @@ def do_training(args):
                 project=args.project,
                 entity='cv-21',
                 group=osp.basename(data_dir),
-                name=f'{args.max_epoch}e_{args.optimizer}_{args.scheduler}_{args.learning_rate}'
+                name=f'{args.max_epoch}e_{args.optimizer}_{args.scheduler}_{args.learning_rate}_{dataset_name}'
             )
             wandb.config.update(args)
-            wandb.watch(model)  # model 초기화 후에 호출        
+            wandb.watch(model)
 
         if args.data == 'pickle':
             train_dataset = PickleDataset(train_dataset_dir)
