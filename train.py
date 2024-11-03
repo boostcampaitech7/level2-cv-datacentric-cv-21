@@ -199,6 +199,10 @@ def main(args):
         print(f"Starting training for {language}")
         dataset_path = osp.join(args.data_dir, language)
 
+        # 언어별 저장 경로 지정
+        language_save_dir = osp.join(args.save_dir, language)
+        os.makedirs(language_save_dir, exist_ok=True)
+
         # wandb 이름을 언어별로 지정하여 구분 가능하도록 설정
         args.wandb_name = f"{language}_run"
 
@@ -207,7 +211,7 @@ def main(args):
             config=args,
             seed=args.seed,
             dataset_path=dataset_path,
-            model_dir=args.model_dir,
+            model_dir=language_save_dir,
             device=args.device,
             image_size=args.image_size,
             input_size=args.input_size,
