@@ -64,6 +64,7 @@ def parse_args():
     parser.add_argument('--apply_flip', action='store_true', help='Apply horizontal flip (default: False)')
     parser.add_argument('--apply_rotate', action='store_true', help='Apply random rotate 90 (default: False)')
     parser.add_argument('--apply_blur', action='store_true', help='Apply Gaussian blur (default: False)')
+    parser.add_argument('--apply_enlarge', action='store_true', help='Apply Enlarge image (default: False)')
     parser.add_argument('--save_dir', type=str, default=os.path.join(os.environ.get('SM_MODEL_DIR', 'trained_models'), 'saved_models'),
                         help='Directory to save models')
     args = parser.parse_args()
@@ -87,6 +88,16 @@ def create_transforms(args):
 
     if args.apply_blur:
         funcs.append(A.GaussianBlur(blur_limit=(3, 7), p=0.3))
+
+    def conditional_resize(image, scale_limit=(1.2, 1.5), **kwargs):
+        h, w = image.shape[:2]
+        if h < args.input_size or w < args.input_size:
+            transform = A.RandomScale(scale_limit=scale_limit, p=1.0)
+            image = transform(image=image)['image']
+        return image
+    
+    if args.apply_enlarge:
+        funcs.append(A.Lambda(image=conditional_resize))
 
     if args.normalize:
         funcs.append(A.Normalize(mean=(0.6831708235495132, 0.6570838514500981, 0.6245893701608299),
