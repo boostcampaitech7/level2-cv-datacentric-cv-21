@@ -65,6 +65,7 @@ def parse_args():
     parser.add_argument('--apply_rotate', action='store_true', help='Apply random rotate 90 (default: False)')
     parser.add_argument('--apply_blur', action='store_true', help='Apply Gaussian blur (default: False)')
     parser.add_argument('--apply_enlarge', action='store_true', help='Apply Enlarge image (default: False)')
+    parser.add_argument('--apply_brightness', action='store_true', help='Apply Random Brightness image (default: False)')
     parser.add_argument('--save_dir', type=str, default=os.path.join(os.environ.get('SM_MODEL_DIR', 'trained_models'), 'saved_models'),
                         help='Directory to save models')
     args = parser.parse_args()
@@ -98,6 +99,9 @@ def create_transforms(args):
     
     if args.apply_enlarge:
         funcs.append(A.Lambda(image=conditional_resize))
+
+    if args.apply_brightness: # 밝기와 대비를 +-20% 범위 내에서 무작위로 조절, p=0.5: 50% 확률로 밝기와 대비 조정
+        funcs.append(A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5))
 
     if args.normalize:
         funcs.append(A.Normalize(mean=(0.6831708235495132, 0.6570838514500981, 0.6245893701608299),
