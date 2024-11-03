@@ -102,6 +102,7 @@ def do_training(args):
         save_dir = osp.join(args.save_dir, dataset_name)  # 데이터셋별 저장 경로 생성
         os.makedirs(save_dir, exist_ok=True)
 
+        transform = create_transforms(args)
         model = EAST().to(args.device)
         optimizer = optim(args.optimizer, args.learning_rate, model.parameters())
         scheduler = sched(args, optimizer)
