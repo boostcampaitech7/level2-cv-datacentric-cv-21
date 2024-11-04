@@ -68,7 +68,7 @@ def get_pred_bboxes(model, data_dir, valid_images, input_size, batch_size, split
         by_sample_bboxes.extend(detect(model, images, input_size))
 
     pred_bboxes = dict()
-    for idx in range(len(image_fnameAverageMeters)) :
+    for idx in range(len(image_fnames)) :
         image_fname = image_fnames[idx]
         sample_bboxes = by_sample_bboxes[idx]
         pred_bboxes[image_fname] = sample_bboxes
