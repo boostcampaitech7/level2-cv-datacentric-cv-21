@@ -1,5 +1,6 @@
 import pickle
 from tqdm import tqdm
+
 import os
 import os.path as osp
 import sys
@@ -21,6 +22,7 @@ def main():
         '/data/ephemeral/home/data/vietnamese_receipt'
     ]
     ignore_tags = ['masked', 'excluded-region', 'maintable', 'stamp']
+    
 
     custom_augmentation_dict = {
         'CJ': A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2, p=0.1),
@@ -29,6 +31,7 @@ def main():
         'GN': A.GaussNoise(p=0.5),
         'HSV': A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
         'RBC': A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
+
         'N': A.Normalize(mean=(0.6831708235495132, 0.6570838514500981, 0.6245893701608299),
                         std=(0.19835448743425943, 0.20532970462804873, 0.21117810051894778), p=1.0)
     }
@@ -43,6 +46,7 @@ def main():
     for data_dir in data_dirs:  # 각 데이터 디렉토리에 대해 반복
         pkl_dir = f'pickle/{image_size}_cs{crop_size}_aug{aug_select}/train/'
         os.makedirs(osp.join(data_dir, pkl_dir), exist_ok=True)
+
 
         for i, i_size in enumerate(image_size):
             for j, c_size in enumerate(crop_size):
@@ -66,6 +70,7 @@ def main():
                     data = train_dataset.__getitem__(k)
                     with open(file=osp.join(data_dir, pkl_dir, f"{ds*i+ds*j+k}.pkl"), mode="wb") as f:
                         pickle.dump(data, f)
+            
 
 if __name__ == '__main__':
     main()
