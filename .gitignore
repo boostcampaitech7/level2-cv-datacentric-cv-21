@@ -51,3 +51,5 @@ logs/
 z_mine/
 wandb/
 artifacts/
+comparison_images/
+saved_models/
