@@ -15,10 +15,10 @@ from scheduler import sched
 from tqdm import tqdm
 import wandb
 
-from east_dataset import EASTDataset
-from dataset import SceneTextDataset, PickleDataset
-from model import EAST
-from deteval import calc_deteval_metrics
+from baseline.east_dataset import EASTDataset
+from github.archives.baseline.dataset import SceneTextDataset, PickleDataset
+from baseline.model import EAST
+from archives.deteval import calc_deteval_metrics
 from utils import get_gt_bboxes, get_pred_bboxes, seed_everything, AverageMeter
 
 import albumentations as A
@@ -131,7 +131,7 @@ def do_training(args):
                 pin_memory=True,
             )
             train_dataset = EASTDataset(train_dataset)
-        
+
         train_num_batches = math.ceil(len(train_dataset) / args.batch_size)
         train_loader = DataLoader(
             train_dataset,
@@ -148,7 +148,7 @@ def do_training(args):
             with open(osp.join(data_dir, valid_json_file), 'r', encoding='utf-8') as file:
                 val_data = json.load(file)
             val_images = list(val_data['images'].keys())
-        
+
         best_f1_score = 0
         for epoch in range(args.max_epoch):
             model.train()
@@ -178,7 +178,7 @@ def do_training(args):
 
             if (epoch + 1) % args.val_interval == 0 or epoch >= args.max_epoch - 5:
                 print("Calculating validation results...")
-                pred_bboxes_dict = get_pred_bboxes(model, data_dir, val_images, args.input_size, args.batch_size, split='train')            
+                pred_bboxes_dict = get_pred_bboxes(model, data_dir, val_images, args.input_size, args.batch_size, split='train')
                 gt_bboxes_dict = get_gt_bboxes(data_dir, json_file=valid_json_file, valid_images=val_images)
                 result = calc_deteval_metrics(pred_bboxes_dict, gt_bboxes_dict)
                 precision, recall = result['total']['precision'], result['total']['recall']
@@ -188,7 +188,7 @@ def do_training(args):
                 val_dict = {'val precision': precision, 'val recall': recall, 'val f1_score': f1_score}
                 if args.mode == 'on':
                     wandb.log(val_dict, step=epoch)
-                
+
                 if f1_score > best_f1_score:
                     best_f1_score = f1_score
                     torch.save(model.state_dict(), osp.join(save_dir, 'best.pth'))

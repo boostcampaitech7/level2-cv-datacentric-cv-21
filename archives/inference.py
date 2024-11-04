@@ -12,7 +12,7 @@ from torch import cuda
 from .baseline.model import EAST
 
 from detect import detect
-from utils import increment_path
+from archives.utils import increment_path
 
 CHECKPOINT_EXTENSIONS = [".pth", ".ckpt"]
 

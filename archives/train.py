@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader, random_split
 from torch.optim import lr_scheduler
 
 from baseline.east_dataset import EASTDataset
-from dataset import SceneTextDataset
+from baseline.dataset import SceneTextDataset
 from baseline.model import EAST
 from utils import increment_path
 
@@ -26,8 +26,10 @@ def parse_args():
 
     # Conventional args
     parser.add_argument("--seed", type=int, default=4669)
-    parser.add_argument("--data_dir", type=str, default="../data")
-    parser.add_argument("--model_dir", type=str, default="trained_models")
+    parser.add_argument('--data_dir', type=str,
+                        default=os.environ.get('SM_CHANNEL_TRAIN', 'data'))
+    parser.add_argument('--model_dir', type=str, default=os.environ.get('SM_MODEL_DIR',
+                                                                        'trained_models'))
     parser.add_argument("--device", default="cuda" if cuda.is_available() else "cpu")
     parser.add_argument("--num_workers", type=int, default=8)
     parser.add_argument("--image_size", type=int, default=2048)

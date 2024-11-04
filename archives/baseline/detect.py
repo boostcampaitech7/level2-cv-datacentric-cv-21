@@ -6,7 +6,7 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from albumentations.augmentations.geometric.resize import LongestMaxSize
 
-from dataset import get_rotate_mat
+from github.archives.baseline.dataset import get_rotate_mat
 
 MAX_BOX_PREDICTIONS = 1000
 
@@ -131,7 +131,7 @@ def detect(model, images, input_size, map_scale=0.5):
     for score_map, geo_map, orig_size in zip(score_maps, geo_maps, orig_sizes):
         map_margin = int(abs(orig_size[0] - orig_size[1]) * map_scale * input_size / max(orig_size))
         if orig_size[0] == orig_size[1]:
-            score_map, geo_map = score_map, geo_map        
+            score_map, geo_map = score_map, geo_map
         elif orig_size[0] > orig_size[1]:
             score_map, geo_map = score_map[:, :, :-map_margin], geo_map[:, :, :-map_margin]
         else:
