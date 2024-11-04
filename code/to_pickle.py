@@ -1,8 +1,10 @@
 import pickle
 from tqdm import tqdm
+import sys
 import os
 import os.path as osp
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '../baseline'))
 from east_dataset import EASTDataset
 from dataset import SceneTextDataset
 

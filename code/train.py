@@ -14,10 +14,13 @@ from optimizer import optim
 from scheduler import sched
 from tqdm import tqdm
 import wandb
+import sys
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '../baseline'))
 from east_dataset import EASTDataset
 from dataset import SceneTextDataset, PickleDataset
 from model import EAST
+sys.path.append(os.path.join(os.path.dirname(__file__), '../code'))
 from deteval import calc_deteval_metrics
 from utils import get_gt_bboxes, get_pred_bboxes, seed_everything, AverageMeter
 
