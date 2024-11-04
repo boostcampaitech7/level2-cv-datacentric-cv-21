@@ -34,12 +34,9 @@ def main():
     
     image_size = [1024, 1536, 2048]
     crop_size = [1024]
-    aug_select = ['CJ','RC','N']
+    aug_select = ['CJ','N']
     
-    if 'RC' in aug_select:
-        random_crop=True
-    else:
-        random_crop=False
+    random_crop=True
 
 
     fold = 0
