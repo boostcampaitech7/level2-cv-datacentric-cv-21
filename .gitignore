@@ -14,6 +14,8 @@ egg-info
 .idea
 .pycharm.debug
 .cache
+.pth
+.ckpt
 
 # Virtual environment files
 venv
