@@ -34,8 +34,14 @@ def main():
     
     image_size = [1024, 1536, 2048]
     crop_size = [1024]
-    aug_select = ['CJ','N']
+    aug_select = ['CJ','RC','N']
     
+    if 'RC' in aug_select:
+        random_crop=True
+    else:
+        random_crop=False
+
+
     fold = 0
     custom_augmentation = [custom_augmentation_dict[s] for s in aug_select]
 
@@ -56,7 +62,8 @@ def main():
                         ignore_tags=ignore_tags,
                         custom_transform=A.Compose(custom_augmentation),
                         color_jitter=False,
-                        normalize=False
+                        normalize=False,
+                        random_crop=random_crop
                     )
                 train_dataset = EASTDataset(train_dataset)
 
@@ -67,4 +74,5 @@ def main():
                         pickle.dump(data, f)
             
 if __name__ == '__main__':
+
     main()

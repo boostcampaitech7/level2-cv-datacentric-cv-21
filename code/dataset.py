@@ -403,8 +403,10 @@ class SceneTextDataset(Dataset):
         image, vertices = adjust_height(image, vertices)
         image, vertices = rotate_img(image, vertices)
         if self.random_crop:
-            length = np.random.randint(512, 1024)
+            length = np.random.randint(128, 1024)
             image, vertices = crop_img(image, vertices, labels, length)
+        else:
+            image, vertices = crop_img(image, vertices, labels, self.crop_size)
 
         if image.mode != 'RGB':
             image = image.convert('RGB')
