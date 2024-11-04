@@ -16,6 +16,7 @@ import wandb
 # Function from "baseline" folder (수정이 불가한 내용들)
 from baseline.east_dataset import EASTDataset
 from baseline.model import EAST
+from baseline.loss import EASTLoss
 
 # Funtction from code (수정이 가능한 내용들)
 from deteval import calc_deteval_metrics

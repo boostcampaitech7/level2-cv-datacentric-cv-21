@@ -6,7 +6,7 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from albumentations.augmentations.geometric.resize import LongestMaxSize
 
-from ..dataset import get_rotate_mat
+from dataset import get_rotate_mat
 
 MAX_BOX_PREDICTIONS = 1000
 

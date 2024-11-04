@@ -4,7 +4,7 @@ import random
 import numpy as np
 import torch
 
-from detect import detect
+from baseline.detect import detect
 from tqdm import tqdm
 import cv2
 import json

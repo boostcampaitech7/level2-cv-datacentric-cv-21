@@ -12,9 +12,10 @@ from torch import cuda
 from torch.utils.data import DataLoader, random_split
 from torch.optim import lr_scheduler
 
+# Import function
 from baseline.east_dataset import EASTDataset
-from baseline.dataset import SceneTextDataset
 from baseline.model import EAST
+from dataset import SceneTextDataset
 from utils import increment_path
 
 import wandb

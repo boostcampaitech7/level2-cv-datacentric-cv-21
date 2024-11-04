@@ -9,10 +9,11 @@ from datetime import timedelta
 import torch
 import cv2
 from torch import cuda
-from .baseline.model import EAST
 
-from detect import detect
-from archives.utils import increment_path
+# Import function
+from baseline.model import EAST
+from baseline.detect import detect
+from utils import increment_path
 
 CHECKPOINT_EXTENSIONS = [".pth", ".ckpt"]
 
