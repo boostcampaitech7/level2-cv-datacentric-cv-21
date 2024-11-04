@@ -5,8 +5,11 @@ import os.path as osp
 import sys
 sys.path.append('/data/ephemeral/home/github/baseline')
 
-from east_dataset import EASTDataset
-from github.archives.baseline.dataset import SceneTextDataset
+# Function from "baseline" folder (수정이 불가한 내용들)
+from baseline.east_dataset import EASTDataset
+
+# Funtction from code (수정이 가능한 내용들)
+from dataset import SceneTextDataset
 
 import albumentations as A
 

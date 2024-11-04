@@ -7,10 +7,11 @@ from glob import glob
 import torch
 import cv2
 from torch import cuda
-from model import EAST
 from tqdm import tqdm
 
+# Function from "baseline" folder (수정이 불가한 내용들)
 from baseline.detect import detect
+from baseline.model import EAST
 
 
 CHECKPOINT_EXTENSIONS = ['.pth', '.ckpt']
