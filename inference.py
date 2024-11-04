@@ -10,7 +10,7 @@ from torch import cuda
 from model import EAST
 from tqdm import tqdm
 
-from detect import detect
+from baseline.detect import detect
 
 
 CHECKPOINT_EXTENSIONS = ['.pth', '.ckpt']
@@ -79,17 +79,17 @@ def main(args):
         # 모델과 체크포인트 초기화
         model = EAST(pretrained=False).to(args.device)
         best_checkpoint_fpath = osp.join(model_dir, 'best.pth')
-        
+
         if os.path.isfile(best_checkpoint_fpath):
             print(f'{model_dir}의 best checkpoint 찾음')
             ckpt_fpath = best_checkpoint_fpath
         else:
             print(f'{model_dir}의 best checkpoint 찾지 못함, latest checkpoint로 설정')
             ckpt_fpath = osp.join(model_dir, 'latest.pth')
-        
+
         # 각 모델과 데이터 디렉토리에서 추론 수행
         split_result = do_inference(model, ckpt_fpath, data_dir, args.input_size, args.batch_size, split='test')
-        
+
         # 추론 결과를 최종 결과에 업데이트
         ufo_result['images'].update(split_result['images'])
 

@@ -363,7 +363,7 @@ class SceneTextDataset(Dataset):
 
         self.drop_under_threshold = drop_under_threshold
         self.ignore_under_threshold = ignore_under_threshold
-        
+
         self.custom_transform = custom_transform
 
     def __len__(self):
@@ -426,11 +426,11 @@ class PickleDataset(Dataset):
         self.datadir = datadir
         self.to_tensor = to_tensor
         self.datalist = [f for f in os.listdir(datadir) if f.endswith('.pkl')]
- 
+
     def __getitem__(self, idx):
         with open(file=osp.join(self.datadir, f"{idx}.pkl"), mode="rb") as f:
             data = pickle.load(f)
-            
+
         image, score_map, geo_map, roi_mask = data
         if self.to_tensor:
             image = torch.Tensor(image)

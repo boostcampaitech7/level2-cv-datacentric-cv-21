@@ -15,15 +15,19 @@ from scheduler import sched
 from tqdm import tqdm
 import wandb
 
+# Function from "baseline" folder (수정이 불가한 내용들)
 from baseline.east_dataset import EASTDataset
-from github.archives.baseline.dataset import SceneTextDataset, PickleDataset
 from baseline.model import EAST
-from archives.deteval import calc_deteval_metrics
+
+# Funtction from code (수정이 가능한 내용들)
+from deteval import calc_deteval_metrics
 from utils import get_gt_bboxes, get_pred_bboxes, seed_everything, AverageMeter
+from dataset import SceneTextDataset, PickleDataset
 
 import albumentations as A
 import numpy as np
 os.environ['SM_MODEL_DIR'] = '/data/ephemeral/home/github'
+
 def parse_args():
     parser = ArgumentParser()
 
@@ -72,6 +76,7 @@ def parse_args():
         raise ValueError('`input_size` must be a multiple of 32')
 
     return args
+
 
 def create_transforms(args):
     funcs = []
@@ -199,6 +204,7 @@ def do_training(args):
         if args.mode == 'on':
             wandb.alert('Training Task Finished', f"Best F1 Score: {best_f1_score:.4f}")
             wandb.finish()
+
 
 def main(args):
     do_training(args)
