@@ -10,8 +10,6 @@ from argparse import ArgumentParser
 import torch
 from torch import cuda
 from torch.utils.data import DataLoader
-from optimizer import optim
-from scheduler import sched
 from tqdm import tqdm
 import wandb
 
@@ -23,6 +21,8 @@ from baseline.model import EAST
 from deteval import calc_deteval_metrics
 from utils import get_gt_bboxes, get_pred_bboxes, seed_everything, AverageMeter
 from dataset import SceneTextDataset, PickleDataset
+from optimizer import optim
+from scheduler import sched
 
 import albumentations as A
 import numpy as np
