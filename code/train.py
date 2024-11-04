@@ -14,10 +14,15 @@ from optimizer import optim
 from scheduler import sched
 from tqdm import tqdm
 import wandb
+import sys
+import cv2
+import numpy as np
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '../baseline'))
 from east_dataset import EASTDataset
 from dataset import SceneTextDataset, PickleDataset
 from model import EAST
+sys.path.append(os.path.join(os.path.dirname(__file__), '../code'))
 from deteval import calc_deteval_metrics
 from utils import get_gt_bboxes, get_pred_bboxes, seed_everything, AverageMeter
 
@@ -29,10 +34,10 @@ def parse_args():
 
     # 여러 피클 데이터셋 경로
     parser.add_argument('--train_dataset_dirs', nargs='+', type=str, default=[
-        "/data/ephemeral/home/data/chinese_receipt/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train",
-        "/data/ephemeral/home/data/japanese_receipt/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train",
-        "/data/ephemeral/home/data/thai_receipt/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train",
-        "/data/ephemeral/home/data/vietnamese_receipt/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train"
+        "/data/ephemeral/home/data/chinese_receipt/pickle/original/train",
+        "/data/ephemeral/home/data/japanese_receipt/pickle/original/train",
+        "/data/ephemeral/home/data/thai_receipt/pickle/original/train",
+        "/data/ephemeral/home/data/vietnamese_receipt/pickle/original/train"
     ])
     parser.add_argument('--data_dirs', nargs='+', type=str, default=[
         "/data/ephemeral/home/data/chinese_receipt",
@@ -46,8 +51,8 @@ def parse_args():
     parser.add_argument('--val_interval', type=int, default=5)
     parser.add_argument('--device', default='cuda:0' if cuda.is_available() else 'cpu')
     parser.add_argument('--num_workers', type=int, default=8)
-    parser.add_argument('--image_size', type=int, default=2048)
-    parser.add_argument('--input_size', type=int, default=1024)
+    parser.add_argument('--image_size', type=int, default=2048) # 2048보다 큰 이미지가 입력되면 2048의 비율로 맞춘다
+    parser.add_argument('--input_size', type=int, default=1024) # 모델에 입력될 이미지가 1024크기로 crop된다
     parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--learning_rate', type=float, default=1e-3)
     parser.add_argument('--max_epoch', type=int, default=150)
@@ -64,6 +69,9 @@ def parse_args():
     parser.add_argument('--apply_flip', action='store_true', help='Apply horizontal flip (default: False)')
     parser.add_argument('--apply_rotate', action='store_true', help='Apply random rotate 90 (default: False)')
     parser.add_argument('--apply_blur', action='store_true', help='Apply Gaussian blur (default: False)')
+    parser.add_argument('--apply_enlarge', action='store_true', help='Apply Enlarge image (default: False)')
+    parser.add_argument('--apply_brightness', action='store_true', help='Apply Random Brightness image (default: False)')
+    parser.add_argument('--apply_padding', action='store_true', help='Apply Padding image (default: False)')
     parser.add_argument('--save_dir', type=str, default=os.path.join(os.environ.get('SM_MODEL_DIR', 'trained_models'), 'saved_models'),
                         help='Directory to save models')
     args = parser.parse_args()
@@ -88,6 +96,35 @@ def create_transforms(args):
     if args.apply_blur:
         funcs.append(A.GaussianBlur(blur_limit=(3, 7), p=0.3))
 
+    def conditional_resize(image, scale_limit=(1.2, 1.5), **kwargs):
+        h, w = image.shape[:2]
+        if h < args.input_size or w < args.input_size: # h나 w가 둘 중에 하나라도 input_size(default:1024)보다 작으면 1.2~1.5배 사이즈 키우기
+            transform = A.RandomScale(scale_limit=scale_limit, p=1.0)
+            image = transform(image=image)['image']
+        return image
+    
+    if args.apply_enlarge:
+        funcs.append(A.Lambda(image=conditional_resize))
+
+    if args.apply_brightness: # 밝기와 대비를 +-20% 범위 내에서 무작위로 조절, p=0.5: 50% 확률로 밝기와 대비 조정
+        funcs.append(A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5))
+    
+    def dynamic_padding(image, **kwargs):
+        h, w = image.shape[:2]
+        padding_ratio = random.uniform(0, 0.2) # 0~20% 패딩 추가
+        padding_height = int(h*padding_ratio)
+        padding_width = int(w*padding_ratio)
+        pad_transform = A.PadIfNeeded(
+            min_height = h + padding_height,
+            min_width = w + padding_width,
+            border_mode = 0,
+            value = (255, 255, 255)) # 하얀색 패딩
+        return pad_transform(image=image)['image']
+
+    if args.apply_padding:
+        funcs.append(A.Lambda(image=dynamic_padding))
+        funcs.append(A.Resize(args.input_size, args.input_size)) # 패딩을 하게 되면 torch size에 오류가 생겨서 다시 resize 해줌
+
     if args.normalize:
         funcs.append(A.Normalize(mean=(0.6831708235495132, 0.6570838514500981, 0.6245893701608299),
                                  std=(0.19835448743425943, 0.20532970462804873, 0.21117810051894778)))
@@ -95,8 +132,33 @@ def create_transforms(args):
     transform = A.Compose(funcs)
     return transform
 
+def save_original_and_augmentaed_images(original_images, augmented_images, output_dir, batch_idx=0):
+    os.makedirs(output_dir, exist_ok=True)
+
+    for i, (orig_img, aug_img) in enumerate(zip(original_images, augmented_images)):
+        # 원래 이미지와 증강된 이미지의 데이터 타입 확인 및 변환
+        # if orig_img.dtype != np.uint8:
+        #     orig_img = np.clip(orig_img*255, 0, 255).astype(np.uint8)
+        # if aug_img.dtype != np.uint8:
+        #    aug_img = np.clip(aug_img*255, 0, 255).astype(np.uint8)
+        
+        # aug_img = (aug_img - aug_img.min()) / (aug_img.max() - aug_img.min())
+        print("Original image shape:", orig_img.shape, "dtype:", orig_img.dtype)
+        print("Augmented image shape:", aug_img.shape, "dtype:", aug_img.dtype)
+
+        # OpenCV 형식에 맞게 RGB에서 BGR로 변환
+        orig_img_bgr = cv2.cvtColor(orig_img, cv2.COLOR_RGB2BGR)
+        aug_img_bgr = cv2.cvtColor(aug_img, cv2.COLOR_RGB2BGR)
+
+        # 원래 이미지와 증강된 이미지를 나란히 배치
+        combined_img = np.hstack((orig_img_bgr, aug_img_bgr))
+
+        # 파일명 지정 및 저장
+        cv2.imwrite(f"{output_dir}/comparison_batch{batch_idx}_img{i}.png", combined_img)
 
 def do_training(args):
+    output_dir = "comparison_images" # 저장할 디렉토리
+
     for data_dir, train_dataset_dir in zip(args.data_dirs, args.train_dataset_dirs):
         dataset_name = osp.basename(data_dir)  # 데이터셋 이름 추출
         save_dir = osp.join(args.save_dir, dataset_name)  # 데이터셋별 저장 경로 생성
@@ -153,10 +215,15 @@ def do_training(args):
         for epoch in range(args.max_epoch):
             model.train()
             with tqdm(total=train_num_batches) as pbar:
-                for img, gt_score_map, gt_geo_map, roi_mask in train_loader:
-                    img = [image.cpu().numpy().transpose(1, 2, 0) if isinstance(image, torch.Tensor) else image for image in img]
-                    img = [transform(image=image)['image'] for image in img]
-                    img = [torch.from_numpy(image).permute(2, 0, 1) for image in img]
+                for batch_idx, (img, gt_score_map, gt_geo_map, roi_mask) in enumerate(train_loader):
+                    original_images = [image.cpu().numpy().transpose(1, 2, 0) if isinstance(image, torch.Tensor) else image for image in img]
+                    augmented_images = [transform(image=image)['image'] for image in original_images]
+
+                    # 첫 5개 배치만 저장
+                    if batch_idx < 5:
+                        save_original_and_augmentaed_images(original_images, augmented_images, output_dir, batch_idx)
+
+                    img = [torch.from_numpy(image).permute(2, 0, 1) for image in augmented_images]
                     img = torch.stack(img)
                     loss, extra_info = model.train_step(img, gt_score_map, gt_geo_map, roi_mask)
                     optimizer.zero_grad()
