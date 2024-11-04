@@ -2,6 +2,10 @@ import os
 import os.path as osp
 import time
 import math
+import os
+import os.path as osp
+import time
+import math
 import json
 import random
 from datetime import timedelta
@@ -10,23 +14,26 @@ from argparse import ArgumentParser
 import torch
 from torch import cuda
 from torch.utils.data import DataLoader
-from optimizer import optim
-from scheduler import sched
 from tqdm import tqdm
 import wandb
-import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../baseline'))
-from east_dataset import EASTDataset
-from dataset import SceneTextDataset, PickleDataset
-from model import EAST
-sys.path.append(os.path.join(os.path.dirname(__file__), '../code'))
+# Function from "baseline" folder (수정이 불가한 내용들)
+from baseline.east_dataset import EASTDataset
+from baseline.model import EAST
+from baseline.loss import EASTLoss
+
+# Funtction from code (수정이 가능한 내용들)
 from deteval import calc_deteval_metrics
 from utils import get_gt_bboxes, get_pred_bboxes, seed_everything, AverageMeter
+from dataset import SceneTextDataset, PickleDataset
+from optimizer import optim
+from scheduler import sched
 
 import albumentations as A
 import numpy as np
 os.environ['SM_MODEL_DIR'] = '/data/ephemeral/home/github'
+
+
 def parse_args():
     parser = ArgumentParser()
 
