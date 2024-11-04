@@ -1,6 +1,7 @@
 import math
 from collections import namedtuple
 from copy import deepcopy
+
 import numpy as np
 
 
@@ -202,7 +203,7 @@ def calc_deteval_metrics(pred_bboxes_dict, gt_bboxes_dict, transcriptions_dict=N
 
         for n in range(len(pointsList)):
             points = pointsList[n]
-            transcription = transcriptionsList[n] if transcriptionsList is not None else None
+            transcription = transcriptionsList[n]
             dontCare = transcription == "###" or len(points) > 4
             gtRect = Rectangle(*points)
             gtRects.append(gtRect)
