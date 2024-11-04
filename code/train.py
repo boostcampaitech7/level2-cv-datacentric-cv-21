@@ -15,6 +15,7 @@ from scheduler import sched
 from tqdm import tqdm
 import wandb
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '../baseline'))
 from east_dataset import EASTDataset
 from dataset import SceneTextDataset, PickleDataset
 from model import EAST
