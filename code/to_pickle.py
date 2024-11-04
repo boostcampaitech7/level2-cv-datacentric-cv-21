@@ -3,10 +3,12 @@ from tqdm import tqdm
 import os
 import os.path as osp
 
+import albumentations as A
+
 from east_dataset import EASTDataset
 from dataset import SceneTextDataset
 
-import albumentations as A
+
 
 def main():
     data_dirs = [
@@ -25,12 +27,13 @@ def main():
         'HSV': A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
         'RBC': A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
         'N': A.Normalize(mean=(0.6831708235495132, 0.6570838514500981, 0.6245893701608299), 
-                        std=(0.19835448743425943, 0.20532970462804873, 0.21117810051894778), p=1.0)
+                        std=(0.19835448743425943, 0.20532970462804873, 0.21117810051894778), p=1.0),
+        'RC': A.BBoxSafeRandomCrop(erosion_rate=0.5, p=1.0)
     }
     
     image_size = [1024, 1536, 2048]
     crop_size = [1024]
-    aug_select = ['CJ','GB','HSV','N']
+    aug_select = ['CJ','RC','N']
     
     fold = 0
     custom_augmentation = [custom_augmentation_dict[s] for s in aug_select]
