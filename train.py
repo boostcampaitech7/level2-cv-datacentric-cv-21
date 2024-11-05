@@ -50,7 +50,7 @@ def parse_args():
     parser.add_argument('-p', '--project', type=str, default='datacentric', help='wandb project name')
     parser.add_argument('-d', '--data', default='pickle', type=str, help='description about dataset', choices=['original', 'pickle'])
     parser.add_argument("--optimizer", type=str, default='Adam', choices=['adam', 'adamW'])
-    parser.add_argument("--scheduler", type=str, default='cosine', choices=['multistep', 'cosine'])
+    parser.add_argument("--scheduler", type=str, default='multistep', choices=['multistep', 'cosine'])
     parser.add_argument("--resume", type=str, default=None, choices=[None, 'resume', 'finetune'])
     parser.add_argument('--save_dir', type=str, default=os.path.join(os.environ.get('SM_MODEL_DIR', 'trained_models'), 'saved_models'),
                         help='Directory to save models')
