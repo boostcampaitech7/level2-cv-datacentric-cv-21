@@ -54,4 +54,5 @@ z_mine/
 wandb/
 artifacts/
 saved_models/
-comparison_images/
+reference/
+pths/
