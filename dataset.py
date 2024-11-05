@@ -339,8 +339,8 @@ def filter_vertices(vertices, labels, ignore_under=0, drop_under=0):
 class SceneTextDataset(Dataset):
     def __init__(self, root_dir,
                  split='train',
-                 per_lang=False, # If True, make dataset per lang, i.e. 4 datasets
                  fold=0,
+                 per_lang=False, # If True, make dataset per lang, i.e. 4 datasets
                  image_size=2048,
                  crop_size=1024,
                  ignore_tags=[],
