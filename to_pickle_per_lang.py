@@ -47,6 +47,7 @@ def main():
         pkl_dir = f'pickle/{image_size}_cs{crop_size}_aug{aug_select}/train/'
         os.makedirs(osp.join(data_dir, pkl_dir), exist_ok=True)
 
+
         for i, i_size in enumerate(image_size):
             for j, c_size in enumerate(crop_size):
                 if c_size > i_size:
