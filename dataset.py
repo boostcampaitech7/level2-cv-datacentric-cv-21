@@ -355,7 +355,7 @@ class SceneTextDataset(Dataset):
                 anno = json.load(f)
             self.anno = anno
         else:
-            self._lang_list = ['chinese', 'japanese', 'thai', 'vietnamese']
+            self._lang_list = ['japanese']
             self.root_dir = root_dir
             self.split = split
             total_anno = dict(images=dict())
