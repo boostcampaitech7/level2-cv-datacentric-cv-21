@@ -15,7 +15,7 @@ from dataset import SceneTextDataset
 import albumentations as A
 
 def main():
-    data_dir = '/data/ephemeral/home/data',
+    data_dir = '/data/ephemeral/home/data'
     ignore_tags = ['masked', 'excluded-region', 'maintable', 'stamp']
     
 
