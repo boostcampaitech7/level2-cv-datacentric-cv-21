@@ -20,7 +20,9 @@ def main():
     
 
     custom_augmentation_dict = {
-        'CJ': A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2, p=0.1),
+        'CJ1': A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2, p=0.1),
+        'CJ2': A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2, p=0.3),
+        'CJ3': A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2, p=0.5),
         'GB': A.GaussianBlur(blur_limit=(3, 7), p=0.3),
         'B': A.Blur(blur_limit=7, p=0.5),
         'GN': A.GaussNoise(p=0.5),
@@ -33,7 +35,7 @@ def main():
 
     image_size = [1024]
     crop_size = [1024]
-    aug_select = []
+    aug_select = ['CJ3']
 
     fold = 0
     custom_augmentation = [custom_augmentation_dict[s] for s in aug_select]

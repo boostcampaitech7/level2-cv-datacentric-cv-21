@@ -47,13 +47,14 @@ def parse_args():
     parser.add_argument('--save_interval', type=int, default=1)
     parser.add_argument('--ignore_tags', type=list, default=['masked', 'excluded-region', 'maintable', 'stamp'])
     parser.add_argument('-m', '--mode', type=str, default='on', help='wandb logging mode(on: online, off: disabled)')
-    parser.add_argument('-p', '--project', type=str, default='datacentric', help='wandb project name')
+    parser.add_argument('-p', '--project', type=str, default='sungjoo_Color_Jitter', help='wandb project name')
     parser.add_argument('-d', '--data', default='pickle', type=str, help='description about dataset', choices=['original', 'pickle'])
     parser.add_argument("--optimizer", type=str, default='Adam', choices=['adam', 'adamW'])
     parser.add_argument("--scheduler", type=str, default='multistep', choices=['multistep', 'cosine'])
     parser.add_argument("--resume", type=str, default=None, choices=[None, 'resume', 'finetune'])
     parser.add_argument('--save_dir', type=str, default=os.path.join(os.environ.get('SM_MODEL_DIR', 'trained_models'), 'saved_models'),
                         help='Directory to save models')
+    parser.add_argument('--EXP', type=str, default='')
     args = parser.parse_args()
 
     if args.input_size % 32 != 0:
@@ -80,14 +81,14 @@ def do_training(args):
             "/data/ephemeral/home/data/vietnamese_receipt"
         ]
     else:
-        train_dataset_dirs=["/data/ephemeral/home/data/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train"]
+        train_dataset_dirs=[f"/data/ephemeral/home/data/pickle/[1024]_cs[1024]_aug['{args.EXP}']/train"]
         data_dirs=["/data/ephemeral/home/data/"]
     for data_dir, train_dataset_dir in zip(data_dirs, train_dataset_dirs):
         if args.per_lang:
             dataset_name = osp.basename(data_dir)  # 데이터셋 이름 추출
         else:
             dataset_name = 'not-language-wise'
-        save_dir = osp.join(args.save_dir, dataset_name)  # 데이터셋별 저장 경로 생성
+        save_dir = osp.join(args.save_dir, dataset_name, args.EXP)  # 데이터셋별 저장 경로 생성
         os.makedirs(save_dir, exist_ok=True)
 
         model = EAST().to(args.device)
@@ -134,7 +135,7 @@ def do_training(args):
             with open(osp.join(root_dir, f'ufo/valid{args.fold}.json'), 'r') as f:
                 val_data = json.load(f)
         else:
-            _lang_list = ['chinese', 'japanese', 'thai', 'vietnamese']
+            _lang_list = ['japanese']
             total_anno = dict(images=dict())
             for nation in _lang_list:
                 with open(osp.join(data_dir, f'{nation}_receipt/ufo/valid{args.fold}.json'), 'r', encoding='utf-8') as f:

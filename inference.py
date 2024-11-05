@@ -21,12 +21,7 @@ def parse_args():
     parser = ArgumentParser()
 
     # Conventional args
-    parser.add_argument('--model_dir', nargs='+', type=str, default=[
-        "/data/ephemeral/home/github/code/trained_models/150e_Adam_cosine_0.001_chinese_receipt",
-        "/data/ephemeral/home/github/code/trained_models/150e_Adam_cosine_0.001_japanese_receipt",
-        "/data/ephemeral/home/github/code/trained_models/150e_Adam_cosine_0.001_thai_receipt",
-        "/data/ephemeral/home/github/code/trained_models/150e_Adam_cosine_0.001_vietnamese_receipt"
-        ])
+    parser.add_argument('--model_dir', type=str, default='/data/ephemeral/home/github/saved_models/not-language-wise/CJ1')
     parser.add_argument('--data_dirs', nargs='+', type=str, default=[
         "/data/ephemeral/home/data/chinese_receipt",
         "/data/ephemeral/home/data/japanese_receipt",
@@ -36,7 +31,7 @@ def parse_args():
     parser.add_argument('--output_dir', default=os.environ.get('SM_OUTPUT_DATA_DIR', 'predictions'))
     parser.add_argument('--device', default='cuda' if cuda.is_available() else 'cpu')
     parser.add_argument('--input_size', type=int, default=2048)
-    parser.add_argument('--batch_size', type=int, default=5)
+    parser.add_argument('--batch_size', type=int, default=1)
 
     args = parser.parse_args()
 
@@ -75,8 +70,9 @@ def do_inference(model, ckpt_fpath, data_dir, input_size, batch_size, split='tes
 def main(args):
     # 최종 결과를 저장할 딕셔너리 초기화
     ufo_result = dict(images=dict())
+    model_dir = args.model_dir
 
-    for model_dir, data_dir in zip(args.model_dir, args.data_dirs):
+    for data_dir in args.data_dirs:
         # 모델과 체크포인트 초기화
         model = EAST(pretrained=False).to(args.device)
         best_checkpoint_fpath = osp.join(model_dir, 'best.pth')
@@ -96,7 +92,7 @@ def main(args):
 
     # 최종 결과를 하나의 CSV 파일로 저장
     output_fname = 'output.csv'
-    with open(osp.join(args.output_dir, output_fname), 'w') as f:
+    with open(osp.join('/data/ephemeral/home/github/predictions', output_fname), 'w') as f:
         json.dump(ufo_result, f, indent=4)
 
 
