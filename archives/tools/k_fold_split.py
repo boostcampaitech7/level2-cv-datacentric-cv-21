@@ -37,19 +37,19 @@ def main():
         for fold, (train_idx, val_idx) in enumerate(kf.split(image_list)):
             train_images = dict([image_list[i] for i in train_idx])
             val_images = dict([image_list[i] for i in val_idx])
-            
+
             train_data = {'images': train_images}
             val_data = {'images': val_images}
-            
+
             # JSON 파일 생성
             fold_train_path = osp.join(root_dir, f'ufo/train{fold}.json')
             fold_val_path = osp.join(root_dir, f'ufo/valid{fold}.json')
-            
+
             with open(fold_train_path, 'w', encoding='utf-8') as file:
                 json.dump(train_data, file, indent=4, ensure_ascii=False)
             with open(fold_val_path, 'w', encoding='utf-8') as file:
                 json.dump(val_data, file, indent=4, ensure_ascii=False)
-            
+
             print(f"[{root_dir}] Fold {fold}:")
             print(f"  - Train images: {len(train_images)} saved to {fold_train_path}")
             print(f"  - Validation images: {len(val_images)} saved to {fold_val_path}")
