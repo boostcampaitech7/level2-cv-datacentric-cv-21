@@ -339,7 +339,6 @@ def filter_vertices(vertices, labels, ignore_under=0, drop_under=0):
 class SceneTextDataset(Dataset):
     def __init__(self, root_dir,
                  split='train',
-                 json_name=None,
                  per_lang=False, # If True, make dataset per lang, i.e. 4 datasets
                  fold=0,
                  image_size=2048,
@@ -352,9 +351,8 @@ class SceneTextDataset(Dataset):
                  normalize=True):
         self.per_lang = per_lang
         if per_lang:
-            if json_name:
-                with open(osp.join(root_dir, f'ufo/{json_name}'), 'r') as f:
-                    anno = json.load(f)
+            with open(osp.join(root_dir, f'ufo/{split}{fold}.json'), 'r') as f:
+                anno = json.load(f)
             self.anno = anno
         else:
             self._lang_list = ['chinese', 'japanese', 'thai', 'vietnamese']
