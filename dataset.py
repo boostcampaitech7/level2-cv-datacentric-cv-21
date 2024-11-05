@@ -340,6 +340,8 @@ class SceneTextDataset(Dataset):
     def __init__(self, root_dir,
                  split='train',
                  json_name=None,
+                 per_lang=False, # If True, make dataset per lang, i.e. 4 datasets
+                 fold=0,
                  image_size=2048,
                  crop_size=1024,
                  ignore_tags=[],
@@ -348,11 +350,24 @@ class SceneTextDataset(Dataset):
                  custom_transform=None,
                  color_jitter=True,
                  normalize=True):
-        if json_name:
-            with open(osp.join(root_dir, f'ufo/{json_name}'), 'r') as f:
-                anno = json.load(f)
+        self.per_lang = per_lang
+        if per_lang:
+            if json_name:
+                with open(osp.join(root_dir, f'ufo/{json_name}'), 'r') as f:
+                    anno = json.load(f)
+            self.anno = anno
+        else:
+            self._lang_list = ['chinese', 'japanese', 'thai', 'vietnamese']
+            self.root_dir = root_dir
+            self.split = split
+            total_anno = dict(images=dict())
+            for nation in self._lang_list:
+                with open(osp.join(root_dir, f'{nation}_receipt/ufo/{split}{fold}.json'), 'r', encoding='utf-8') as f:
+                    anno = json.load(f)
+                for im in anno['images']:
+                    total_anno['images'][im] = anno['images'][im]
+            self.anno = total_anno
 
-        self.anno = anno
         self.image_fnames = sorted(anno['images'].keys())
         self.image_dir = osp.join(root_dir, 'img', split)
 
@@ -366,12 +381,28 @@ class SceneTextDataset(Dataset):
 
         self.custom_transform = custom_transform
 
+    def _infer_dir(self, fname):
+        lang_indicator = fname.split('.')[1]
+        if lang_indicator == 'zh':
+            lang = 'chinese'
+        elif lang_indicator == 'ja':
+            lang = 'japanese'
+        elif lang_indicator == 'th':
+            lang = 'thai'
+        elif lang_indicator == 'vi':
+            lang = 'vietnamese'
+        else:
+            raise ValueError
+        return osp.join(self.root_dir, f'{lang}_receipt', 'img', self.split)
     def __len__(self):
         return len(self.image_fnames)
 
     def __getitem__(self, idx):
         image_fname = self.image_fnames[idx]
-        image_fpath = osp.join(self.image_dir, image_fname)
+        if self.per_lang:
+            image_fpath = osp.join(self.image_dir, image_fname)
+        else:
+            image_fpath = osp.join(self._infer_dir(image_fname), image_fname)
 
         vertices, labels = [], []
         for word_info in self.anno['images'][image_fname]['words'].values():
