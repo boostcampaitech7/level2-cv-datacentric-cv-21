@@ -425,10 +425,16 @@ class SceneTextDataset(Dataset):
             drop_under=self.drop_under_threshold
         )
 
+        # Load original image without augmentation or resize
+        original_image = Image.open(image_fpath)
+        if original_image.mode != 'RGB':
+            original_image = original_image.convert('RGB')
+        original_image = np.array(original_image)
+
         image = Image.open(image_fpath)
         image, vertices = resize_img(image, vertices, self.image_size)
         image, vertices = adjust_height(image, vertices)
-        image, vertices = rotate_img(image, vertices)
+        # image, vertices = rotate_img(image, vertices)
         image, vertices = crop_img(image, vertices, labels, self.crop_size)
 
         if image.mode != 'RGB':
@@ -444,11 +450,11 @@ class SceneTextDataset(Dataset):
             funcs.append(A.Normalize(mean=(0.6831708235495132, 0.6570838514500981, 0.6245893701608299), std=(0.19835448743425943, 0.20532970462804873, 0.21117810051894778)))
         transform = A.Compose(funcs)
 
-        image = transform(image=image)['image']
+        transformed_image = transform(image=image)['image']
         word_bboxes = np.reshape(vertices, (-1, 4, 2))
         roi_mask = generate_roi_mask(image, vertices, labels)
 
-        return image, word_bboxes, roi_mask
+        return [original_image, transformed_image, word_bboxes, roi_mask]
 
 class PickleDataset(Dataset):
     def __init__(self, datadir, to_tensor=True):
