@@ -64,14 +64,6 @@ def parse_args():
     parser.add_argument("--optimizer", type=str, default='Adam', choices=['adam', 'adamW'])
     parser.add_argument("--scheduler", type=str, default='cosine', choices=['multistep', 'cosine'])
     parser.add_argument("--resume", type=str, default=None, choices=[None, 'resume', 'finetune'])
-    parser.add_argument('--no-color_jitter', action='store_false', dest='color_jitter', default=True, help='Disable color jitter augmentation (default: True)')
-    parser.add_argument('--no-normalize', action='store_false', dest='normalize', default=True, help='Disable normalization (default: True)')
-    parser.add_argument('--apply_flip', action='store_true', help='Apply horizontal flip (default: False)')
-    parser.add_argument('--apply_rotate', action='store_true', help='Apply random rotate 90 (default: False)')
-    parser.add_argument('--apply_blur', action='store_true', help='Apply Gaussian blur (default: False)')
-    parser.add_argument('--apply_enlarge', action='store_true', help='Apply Enlarge image (default: False)')
-    parser.add_argument('--apply_brightness', action='store_true', help='Apply Random Brightness image (default: False)')
-    parser.add_argument('--apply_padding', action='store_true', help='Apply Padding image (default: False)')
     parser.add_argument('--save_dir', type=str, default=os.path.join(os.environ.get('SM_MODEL_DIR', 'trained_models'), 'saved_models'),
                         help='Directory to save models')
     args = parser.parse_args()
@@ -81,56 +73,7 @@ def parse_args():
 
     return args
 
-def create_transforms(args):
-    funcs = []
 
-    if args.color_jitter:
-        funcs.append(A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1))
-
-    if args.apply_flip:
-        funcs.append(A.HorizontalFlip(p=0.5))
-
-    if args.apply_rotate:
-        funcs.append(A.RandomRotate90(p=0.5))
-
-    if args.apply_blur:
-        funcs.append(A.GaussianBlur(blur_limit=(3, 7), p=0.3))
-
-    def conditional_resize(image, scale_limit=(1.2, 1.5), **kwargs):
-        h, w = image.shape[:2]
-        if h < args.input_size or w < args.input_size: # h나 w가 둘 중에 하나라도 input_size(default:1024)보다 작으면 1.2~1.5배 사이즈 키우기
-            transform = A.RandomScale(scale_limit=scale_limit, p=1.0)
-            image = transform(image=image)['image']
-        return image
-
-    if args.apply_enlarge:
-        funcs.append(A.Lambda(image=conditional_resize))
-
-    if args.apply_brightness: # 밝기와 대비를 +-20% 범위 내에서 무작위로 조절, p=0.5: 50% 확률로 밝기와 대비 조정
-        funcs.append(A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5))
-
-    def dynamic_padding(image, **kwargs):
-        h, w = image.shape[:2]
-        padding_ratio = random.uniform(0, 0.2) # 0~20% 패딩 추가
-        padding_height = int(h*padding_ratio)
-        padding_width = int(w*padding_ratio)
-        pad_transform = A.PadIfNeeded(
-            min_height = h + padding_height,
-            min_width = w + padding_width,
-            border_mode = 0,
-            value = (255, 255, 255)) # 하얀색 패딩
-        return pad_transform(image=image)['image']
-
-    if args.apply_padding:
-        funcs.append(A.Lambda(image=dynamic_padding))
-        funcs.append(A.Resize(args.input_size, args.input_size)) # 패딩을 하게 되면 torch size에 오류가 생겨서 다시 resize 해줌
-
-    if args.normalize:
-        funcs.append(A.Normalize(mean=(0.6831708235495132, 0.6570838514500981, 0.6245893701608299),
-                                 std=(0.19835448743425943, 0.20532970462804873, 0.21117810051894778)))
-
-    transform = A.Compose(funcs)
-    return transform
 
 
 def do_training(args):
@@ -139,7 +82,6 @@ def do_training(args):
         save_dir = osp.join(args.save_dir, dataset_name)  # 데이터셋별 저장 경로 생성
         os.makedirs(save_dir, exist_ok=True)
 
-        transform = create_transforms(args)
         model = EAST().to(args.device)
         optimizer = optim(args.optimizer, args.learning_rate, model.parameters())
         scheduler = sched(args, optimizer)
@@ -192,7 +134,6 @@ def do_training(args):
             with tqdm(total=train_num_batches) as pbar:
                 for img, gt_score_map, gt_geo_map, roi_mask in train_loader:
                     img = [image.cpu().numpy().transpose(1, 2, 0) if isinstance(image, torch.Tensor) else image for image in img]
-                    img = [transform(image=image)['image'] for image in img]
                     img = [torch.from_numpy(image).permute(2, 0, 1) for image in img]
                     img = torch.stack(img)
                     loss, extra_info = model.train_step(img, gt_score_map, gt_geo_map, roi_mask)
