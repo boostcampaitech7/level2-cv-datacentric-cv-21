@@ -350,6 +350,8 @@ class SceneTextDataset(Dataset):
                  color_jitter=True,
                  normalize=True):
         self.per_lang = per_lang
+        self.k = 0 # 이미지 저장 횟수 추적
+        self.max_save = 10 # 최대 저장 횟수
         if per_lang:
             with open(osp.join(root_dir, f'ufo/{split}{fold}.json'), 'r') as f:
                 anno = json.load(f)
@@ -425,6 +427,12 @@ class SceneTextDataset(Dataset):
             drop_under=self.drop_under_threshold
         )
 
+        # Load original image without augmentation or resize
+        original_image = Image.open(image_fpath)
+        if original_image.mode != 'RGB':
+            original_image = original_image.convert('RGB')
+        original_image = np.array(original_image)
+
         image = Image.open(image_fpath)
         image, vertices = resize_img(image, vertices, self.image_size)
         image, vertices = adjust_height(image, vertices)
@@ -444,11 +452,32 @@ class SceneTextDataset(Dataset):
             funcs.append(A.Normalize(mean=(0.6831708235495132, 0.6570838514500981, 0.6245893701608299), std=(0.19835448743425943, 0.20532970462804873, 0.21117810051894778)))
         transform = A.Compose(funcs)
 
-        image = transform(image=image)['image']
+        transformed_image = transform(image=image)['image']
         word_bboxes = np.reshape(vertices, (-1, 4, 2))
         roi_mask = generate_roi_mask(image, vertices, labels)
 
-        return image, word_bboxes, roi_mask
+        # 이미지가 Tensor일 경우 NumPy 배열로 변환
+        if isinstance(original_image, torch.Tensor):
+            original_image = original_image.permute(1, 2, 0).numpy()
+        if isinstance(transformed_image, torch.Tensor):
+            transformed_image = transformed_image.permute(1, 2, 0).numpy()
+
+        # 정규화된 경우 시각화를 위해 역정규화
+        transformed_image = (transformed_image * 255).clip(0, 255).astype(np.uint8)
+        
+        data_dir = '/data/ephemeral/home/data'
+
+        # 증강된 이미지를 저장할 폴더 생성
+        augmented_img_dir = osp.join(data_dir, 'augmented_images')
+        os.makedirs(augmented_img_dir, exist_ok=True)
+
+        # 증강된 이미지 저장
+        if self.k < self.max_save:
+            cv2.imwrite(f"{augmented_img_dir}/original_{self.k}.png", original_image)
+            cv2.imwrite(f"{augmented_img_dir}/augmented_{self.k}.png", transformed_image)
+            self.k += 1
+         
+        return transformed_image, word_bboxes, roi_mask
 
 class PickleDataset(Dataset):
     def __init__(self, datadir, to_tensor=True):
