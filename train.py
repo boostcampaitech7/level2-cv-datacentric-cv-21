@@ -67,18 +67,12 @@ def parse_args():
 
 def do_training(args):
     if args.per_lang:
-    # 여러 피클 데이터셋 경로
+    # 다음의 경로를 수정해주세요 : Ln 71, 74, 77
         train_dataset_dirs=[
-            "/data/ephemeral/home/data/chinese_receipt/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train",
-            "/data/ephemeral/home/data/japanese_receipt/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train",
-            "/data/ephemeral/home/data/thai_receipt/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train",
-            "/data/ephemeral/home/data/vietnamese_receipt/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train"
+            "/data/ephemeral/home/data/japanese_receipt/pickle/[1024]_cs[1024]_aug['CJ', 'N']/train",
         ]
         data_dirs=[
-            "/data/ephemeral/home/data/chinese_receipt",
             "/data/ephemeral/home/data/japanese_receipt",
-            "/data/ephemeral/home/data/thai_receipt",
-            "/data/ephemeral/home/data/vietnamese_receipt"
         ]
     else:
         train_dataset_dirs=[f"/data/ephemeral/home/data/pickle/[1024]_cs[1024]_aug['{args.EXP}']/train"]
@@ -135,6 +129,7 @@ def do_training(args):
             with open(osp.join(root_dir, f'ufo/valid{args.fold}.json'), 'r') as f:
                 val_data = json.load(f)
         else:
+            _lang_list = ['japanese']
             _lang_list = ['japanese']
             total_anno = dict(images=dict())
             for nation in _lang_list:
