@@ -53,3 +53,4 @@ wandb/
 artifacts/
 comparison_images/
 saved_models/
+test/
