@@ -134,7 +134,7 @@ def do_training(args):
             with open(osp.join(root_dir, f'ufo/valid{args.fold}.json'), 'r') as f:
                 val_data = json.load(f)
         else:
-            _lang_list = ['chinese', 'japanese', 'thai', 'vietnamese']
+            _lang_list = ['japanese']
             total_anno = dict(images=dict())
             for nation in _lang_list:
                 with open(osp.join(data_dir, f'{nation}_receipt/ufo/valid{args.fold}.json'), 'r', encoding='utf-8') as f:
