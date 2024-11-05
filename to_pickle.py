@@ -31,9 +31,9 @@ def main():
                         std=(0.19835448743425943, 0.20532970462804873, 0.21117810051894778), p=1.0)
     }
 
-    image_size = [1024, 1536, 2048]
+    image_size = [1024]
     crop_size = [1024]
-    aug_select = ['CJ','GB','HSV','N']
+    aug_select = []
 
     fold = 0
     custom_augmentation = [custom_augmentation_dict[s] for s in aug_select]
