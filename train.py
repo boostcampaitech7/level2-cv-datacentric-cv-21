@@ -32,19 +32,7 @@ os.environ['SM_MODEL_DIR'] = '/data/ephemeral/home/github'
 def parse_args():
     parser = ArgumentParser()
 
-    # 여러 피클 데이터셋 경로
-    parser.add_argument('--train_dataset_dirs', nargs='+', type=str, default=[
-        "/data/ephemeral/home/data/chinese_receipt/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train",
-        "/data/ephemeral/home/data/japanese_receipt/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train",
-        "/data/ephemeral/home/data/thai_receipt/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train",
-        "/data/ephemeral/home/data/vietnamese_receipt/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train"
-    ])
-    parser.add_argument('--data_dirs', nargs='+', type=str, default=[
-        "/data/ephemeral/home/data/chinese_receipt",
-        "/data/ephemeral/home/data/japanese_receipt",
-        "/data/ephemeral/home/data/thai_receipt",
-        "/data/ephemeral/home/data/vietnamese_receipt"
-    ])
+    parser.add_argument('--per_lang', action='store_true', help='If true, conduct experiment language-wise')
     parser.add_argument('--model_dir', type=str, default=os.environ.get('SM_MODEL_DIR', 'trained_models'))
     parser.add_argument('--seed', type=int, default=4096)
     parser.add_argument('--fold', type=int, default=0)
@@ -77,8 +65,28 @@ def parse_args():
 
 
 def do_training(args):
-    for data_dir, train_dataset_dir in zip(args.data_dirs, args.train_dataset_dirs):
-        dataset_name = osp.basename(data_dir)  # 데이터셋 이름 추출
+    if args.per_lang:
+    # 여러 피클 데이터셋 경로
+        train_dataset_dirs=[
+            "/data/ephemeral/home/data/chinese_receipt/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train",
+            "/data/ephemeral/home/data/japanese_receipt/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train",
+            "/data/ephemeral/home/data/thai_receipt/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train",
+            "/data/ephemeral/home/data/vietnamese_receipt/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train"
+        ]
+        data_dirs=[
+            "/data/ephemeral/home/data/chinese_receipt",
+            "/data/ephemeral/home/data/japanese_receipt",
+            "/data/ephemeral/home/data/thai_receipt",
+            "/data/ephemeral/home/data/vietnamese_receipt"
+        ]
+    else:
+        train_dataset_dirs="/data/ephemeral/home/data/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train"
+        data_dirs="/data/ephemeral/home/data/"
+    for data_dir, train_dataset_dir in zip(data_dirs, train_dataset_dirs):
+        if args.per_lang:
+            dataset_name = osp.basename(data_dir)  # 데이터셋 이름 추출
+        else:
+            dataset_name = 'not-language-wise'
         save_dir = osp.join(args.save_dir, dataset_name)  # 데이터셋별 저장 경로 생성
         os.makedirs(save_dir, exist_ok=True)
 
@@ -103,7 +111,8 @@ def do_training(args):
             train_dataset = SceneTextDataset(
                 data_dir,
                 split='train',
-                json_name=f'train{args.fold}.json',
+                fold=args.fold,
+                per_lang=args.per_lang,
                 image_size=args.image_size,
                 crop_size=args.input_size,
                 ignore_tags=args.ignore_tags,
