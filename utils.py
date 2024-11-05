@@ -34,15 +34,16 @@ def seed_everything(seed):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = True
 
-def get_gt_bboxes(root_dir, json_file, valid_images) :
+def get_gt_bboxes(dict_from_json, valid_images) :
 
     gt_bboxes = dict()
-    ufo_file_root = osp.join(root_dir, json_file)
+    # ufo_file_root = osp.join(root_dir, json_file)
 
-    with open(ufo_file_root, 'r') as f:
-        ufo_file = json.load(f)
+    # with open(ufo_file_root, 'r') as f:
+    #     ufo_file = json.load(f)
 
-    ufo_file_images = ufo_file['images']
+    # ufo_file_images = ufo_file['images']
+    ufo_file_images = dict_from_json['images']
     for valid_image in tqdm(valid_images) :
         gt_bboxes[valid_image] = []
         for idx in ufo_file_images[valid_image]['words'].keys() :
@@ -50,13 +51,13 @@ def get_gt_bboxes(root_dir, json_file, valid_images) :
 
     return gt_bboxes
 
-def get_pred_bboxes(model, data_dir, valid_images, input_size, batch_size, split='valid') :
+def get_pred_bboxes(model, data_dir, valid_images, input_size, batch_size, split='train') :
 
     image_fnames, by_sample_bboxes = [], []
 
     images = []
     for valid_image in tqdm(valid_images) :
-        image_fpath = osp.join(data_dir,'img/{}/{}'.format(split, valid_image))
+        image_fpath = osp.join(infer_dir(data_dir, split, valid_image), valid_image)
         image_fnames.append(osp.basename(image_fpath))
 
         images.append(cv2.imread(image_fpath)[:, :, ::-1])
@@ -74,3 +75,18 @@ def get_pred_bboxes(model, data_dir, valid_images, input_size, batch_size, split
         pred_bboxes[image_fname] = sample_bboxes
 
     return pred_bboxes
+
+
+def infer_dir(data_dir, split, fname):
+        lang_indicator = fname.split('.')[1]
+        if lang_indicator == 'zh':
+            lang = 'chinese'
+        elif lang_indicator == 'ja':
+            lang = 'japanese'
+        elif lang_indicator == 'th':
+            lang = 'thai'
+        elif lang_indicator == 'vi':
+            lang = 'vietnamese'
+        else:
+            raise ValueError
+        return osp.join(data_dir, f'{lang}_receipt', 'img', split)

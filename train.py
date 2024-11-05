@@ -80,8 +80,8 @@ def do_training(args):
             "/data/ephemeral/home/data/vietnamese_receipt"
         ]
     else:
-        train_dataset_dirs="/data/ephemeral/home/data/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train"
-        data_dirs="/data/ephemeral/home/data/"
+        train_dataset_dirs=["/data/ephemeral/home/data/pickle/[1024, 1536, 2048]_cs[1024]_aug['CJ', 'GB', 'HSV', 'N']/train"]
+        data_dirs=["/data/ephemeral/home/data/"]
     for data_dir, train_dataset_dir in zip(data_dirs, train_dataset_dirs):
         if args.per_lang:
             dataset_name = osp.basename(data_dir)  # 데이터셋 이름 추출
@@ -130,12 +130,20 @@ def do_training(args):
         )
 
         ### Val Loader ###
-        valid_json_file = f'ufo/valid{args.fold}.json'
+        if args.per_lang:
+            with open(osp.join(root_dir, f'ufo/valid{args.fold}.json'), 'r') as f:
+                val_data = json.load(f)
+        else:
+            _lang_list = ['chinese', 'japanese', 'thai', 'vietnamese']
+            total_anno = dict(images=dict())
+            for nation in _lang_list:
+                with open(osp.join(data_dir, f'{nation}_receipt/ufo/valid{args.fold}.json'), 'r', encoding='utf-8') as f:
+                    anno = json.load(f)
+                for im in anno['images']:
+                    total_anno['images'][im] = anno['images'][im]
+            val_data = total_anno
         val_images = []
-        if osp.exists(osp.join(data_dir, valid_json_file)):
-            with open(osp.join(data_dir, valid_json_file), 'r', encoding='utf-8') as file:
-                val_data = json.load(file)
-            val_images = list(val_data['images'].keys())
+        val_images = list(val_data['images'].keys())
 
         best_f1_score = 0
         for epoch in range(args.max_epoch):
@@ -166,7 +174,7 @@ def do_training(args):
             if (epoch + 1) % args.val_interval == 0 or epoch >= args.max_epoch - 5:
                 print("Calculating validation results...")
                 pred_bboxes_dict = get_pred_bboxes(model, data_dir, val_images, args.input_size, args.batch_size, split='train')
-                gt_bboxes_dict = get_gt_bboxes(data_dir, json_file=valid_json_file, valid_images=val_images)
+                gt_bboxes_dict = get_gt_bboxes(dict_from_json=val_data, valid_images=val_images)
                 result = calc_deteval_metrics(pred_bboxes_dict, gt_bboxes_dict)
                 precision, recall = result['total']['precision'], result['total']['recall']
                 f1_score = 2*precision*recall/(precision+recall) if precision + recall > 0 else 0
