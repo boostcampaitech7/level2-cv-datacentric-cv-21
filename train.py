@@ -18,7 +18,7 @@ from baseline.east_dataset import EASTDataset
 from baseline.model import EAST
 from baseline.loss import EASTLoss
 
-# Funtction from code (수정이 가능한 내용들)
+# Function from code (수정이 가능한 내용들)
 from deteval import calc_deteval_metrics
 from utils import get_gt_bboxes, get_pred_bboxes, seed_everything, AverageMeter
 from dataset import SceneTextDataset, PickleDataset
@@ -61,12 +61,8 @@ def parse_args():
 
     return args
 
-
-
-
 def do_training(args):
     if args.per_lang:
-    # 다음의 경로를 수정해주세요 : Ln 71, 74, 77
         train_dataset_dirs=[
             "/data/ephemeral/home/data/japanese_receipt/pickle/[1024]_cs[1024]_aug['CJ', 'N']/train",
         ]
@@ -78,17 +74,16 @@ def do_training(args):
         data_dirs=["/data/ephemeral/home/data/"]
     for data_dir, train_dataset_dir in zip(data_dirs, train_dataset_dirs):
         if args.per_lang:
-            dataset_name = osp.basename(data_dir)  # 데이터셋 이름 추출
+            dataset_name = osp.basename(data_dir)
         else:
             dataset_name = 'not-language-wise'
-        save_dir = osp.join(args.save_dir, dataset_name)  # 데이터셋별 저장 경로 생성
+        save_dir = osp.join(args.save_dir, dataset_name)
         os.makedirs(save_dir, exist_ok=True)
 
         model = EAST().to(args.device)
         optimizer = optim(args.optimizer, args.learning_rate, model.parameters())
         scheduler = sched(args, optimizer)
 
-        # WandB 초기화 및 watch
         if args.mode == 'on':
             wandb.init(
                 project=args.project,
@@ -123,7 +118,6 @@ def do_training(args):
             pin_memory=True
         )
 
-        ### Val Loader ###
         if args.per_lang:
             with open(osp.join(root_dir, f'ufo/valid{args.fold}.json'), 'r') as f:
                 val_data = json.load(f)
@@ -136,7 +130,6 @@ def do_training(args):
                 for im in anno['images']:
                     total_anno['images'][im] = anno['images'][im]
             val_data = total_anno
-        val_images = []
         val_images = list(val_data['images'].keys())
 
         best_f1_score = 0
