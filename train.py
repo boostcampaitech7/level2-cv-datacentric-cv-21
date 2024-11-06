@@ -51,7 +51,7 @@ def parse_args():
     parser.add_argument('-d', '--data', default='pickle', type=str, help='description about dataset', choices=['original', 'pickle'])
     parser.add_argument("--optimizer", type=str, default='Adam', choices=['adam', 'AdamW'])
     parser.add_argument("--scheduler", type=str, default='multistep', choices=['multistep', 'cosine'])
-    parser.add_argument("--resume", type=str, default=None, choices=[None, 'resume', 'finetune'])
+    parser.add_argument('--resume', action='store_true', help="If set, resume training from 'best.pth' weights")
     parser.add_argument('--save_dir', type=str, default=os.path.join(os.environ.get('SM_MODEL_DIR', 'trained_models'), 'saved_models'),
                         help='Directory to save models')
     args = parser.parse_args()
@@ -61,7 +61,13 @@ def parse_args():
 
     return args
 
-
+def load_pretrained_weights(model, weight_path):
+    """Load pretrained weights for fine-tuning."""
+    if os.path.isfile(weight_path):
+        print(f"Loading weights from {weight_path} for fine-tuning...")
+        model.load_state_dict(torch.load(weight_path))
+    else:
+        print(f"Weight file {weight_path} not found. Starting from scratch.")
 
 
 def do_training(args):
@@ -74,17 +80,22 @@ def do_training(args):
             "/data/ephemeral/home/data/japanese_receipt",
         ]
     else:
-        train_dataset_dirs=["/data/ephemeral/home/data_synth/pickle/[1024]_cs[1024]_aug['CJ', 'N']/train"]
+        train_dataset_dirs=["/data/ephemeral/home/data_synth/pickle/[1024]_cs[1024]_aug['CJ']/train"]
         data_dirs=["/data/ephemeral/home/data_synth/"]
     for data_dir, train_dataset_dir in zip(data_dirs, train_dataset_dirs):
         if args.per_lang:
             dataset_name = osp.basename(data_dir)  # 데이터셋 이름 추출
         else:
-            dataset_name = "not-language-wise/[1024]_cs[1024]_aug['CJ', 'N']" # 실험마다 수정해야함
+            dataset_name = "not-language-wise/load_pth_data_[1024]_cs[1024]_aug['CJ']" # 실험마다 수정해야함
         save_dir = osp.join(args.save_dir, dataset_name)  # 데이터셋별 저장 경로 생성
         os.makedirs(save_dir, exist_ok=True)
 
         model = EAST().to(args.device)
+        # Load pretrained weights if resume argument is provided
+        if args.resume:
+            weight_path = osp.join("/data/ephemeral/home/github/saved_models/not-language-wise/[1024]_cs[1024]_aug['CJ', 'N']", 'best.pth')
+            load_pretrained_weights(model, weight_path)
+        
         optimizer = optim(args.optimizer, args.learning_rate, model.parameters())
         scheduler = sched(args, optimizer)
 
