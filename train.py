@@ -66,21 +66,21 @@ def parse_args():
 
 def do_training(args):
     if args.per_lang:
-    # 다음의 경로를 수정해주세요 : Ln 71, 74, 77
+    # 다음의 경로를 수정해주세요 : Ln 71, 77, 83
         train_dataset_dirs=[
-            "/data/ephemeral/home/data/japanese_receipt/pickle/[1024]_cs[1024]_aug['CJ', 'N']/train",
+            "/data/ephemeral/home/data/japanese_receipt/pickle/[1024]_cs[1024]_aug[]/train",
         ]
         data_dirs=[
             "/data/ephemeral/home/data/japanese_receipt",
         ]
     else:
-        train_dataset_dirs=["/data/ephemeral/home/data/pickle/[1024]_cs[1024]_aug['CJ', 'N']/train"]
+        train_dataset_dirs=["/data/ephemeral/home/data/pickle/[1024]_cs[1024]_aug[]/train"]
         data_dirs=["/data/ephemeral/home/data/"]
     for data_dir, train_dataset_dir in zip(data_dirs, train_dataset_dirs):
         if args.per_lang:
             dataset_name = osp.basename(data_dir)  # 데이터셋 이름 추출
         else:
-            dataset_name = 'not-language-wise'
+            dataset_name = 'not-language-wise/aug[]' # 실험마다 수정해야함
         save_dir = osp.join(args.save_dir, dataset_name)  # 데이터셋별 저장 경로 생성
         os.makedirs(save_dir, exist_ok=True)
 
@@ -94,7 +94,7 @@ def do_training(args):
                 project=args.project,
                 entity='cv-21',
                 group=osp.basename(data_dir),
-                name=f'{args.max_epoch}e_{args.optimizer}_{args.scheduler}_{args.learning_rate}_{dataset_name}'
+                name=f'{dataset_name}'
             )
             wandb.config.update(args)
             wandb.watch(model)
@@ -173,6 +173,7 @@ def do_training(args):
                 precision, recall = result['total']['precision'], result['total']['recall']
                 f1_score = 2*precision*recall/(precision+recall) if precision + recall > 0 else 0
                 print(f'Precision: {precision} Recall: {recall} F1 Score: {f1_score}')
+                print(f'Epoch: {epoch}')
 
                 val_dict = {'val precision': precision, 'val recall': recall, 'val f1_score': f1_score}
                 if args.mode == 'on':
