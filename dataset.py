@@ -464,7 +464,7 @@ class SceneTextDataset(Dataset):
         if self.custom_transform:
             funcs.append(self.custom_transform)
         if self.normalize:
-            funcs.append(A.Normalize(mean=(0.6831708235495132, 0.6570838514500981, 0.6245893701608299), std=(0.19835448743425943, 0.20532970462804873, 0.21117810051894778)))
+            funcs.append(A.Normalize())
         transform = A.Compose(funcs)
 
         transformed_image = transform(image=image)['image']
@@ -476,9 +476,6 @@ class SceneTextDataset(Dataset):
             original_image = original_image.permute(1, 2, 0).numpy()
         if isinstance(transformed_image, torch.Tensor):
             transformed_image = transformed_image.permute(1, 2, 0).numpy()
-
-        # 정규화된 경우 시각화를 위해 역정규화
-        transformed_image = (transformed_image * 255).clip(0, 255).astype(np.uint8)
         
         data_dir = '/data/ephemeral/home/data_synth'
 
@@ -486,10 +483,13 @@ class SceneTextDataset(Dataset):
         augmented_img_dir = osp.join(data_dir, 'augmented_images')
         os.makedirs(augmented_img_dir, exist_ok=True)
 
+        # 시각화를 위해 역정규화
+        renorm_transformed_image = (transformed_image * 255).clip(0, 255).astype(np.uint8)
+
         # 증강된 이미지 저장
         if self.k < self.max_save:
             cv2.imwrite(f"{augmented_img_dir}/original_{self.k}.png", original_image)
-            cv2.imwrite(f"{augmented_img_dir}/augmented_{self.k}.png", transformed_image)
+            cv2.imwrite(f"{augmented_img_dir}/augmented_{self.k}.png", renorm_transformed_image)
             self.k += 1
          
         return transformed_image, word_bboxes, roi_mask

@@ -22,13 +22,10 @@ def main():
     custom_augmentation_dict = {
         'CJ': A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2, p=0.1),
         'GB': A.GaussianBlur(blur_limit=(3, 7), p=0.3),
-        'B': A.Blur(blur_limit=7, p=0.5),
-        'GN': A.GaussNoise(p=0.5),
+        'B': A.Blur(blur_limit=(7, 7), p=0.5), # 파라미터 정리 default값 (blur_limit=7(숫자가 클수록 이미지가 더 많이 흐려짐), p=0.5)
+        'GN': A.GaussNoise(var_limit=(500, 5000), p=1.0), # 파라미터 정리 default값 (var_limit=(10, 50), mean=0, per_channel=True(각 채널(R, G, B)에 서로 다른 노이즈 추가), p=0.5)
         'HSV': A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
         'RBC': A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
-
-        'N': A.Normalize(mean=(0.6831708235495132, 0.6570838514500981, 0.6245893701608299),
-                        std=(0.19835448743425943, 0.20532970462804873, 0.21117810051894778), p=1.0)
     }
 
     image_size = [1024]
@@ -57,7 +54,6 @@ def main():
                     ignore_tags=ignore_tags,
                     custom_transform=A.Compose(custom_augmentation),
                     color_jitter=False,
-                    normalize=False
                 )
             train_dataset = EASTDataset(train_dataset)
 
