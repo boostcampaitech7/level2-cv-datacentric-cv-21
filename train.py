@@ -80,7 +80,7 @@ def do_training(args):
         if args.per_lang:
             dataset_name = osp.basename(data_dir)  # 데이터셋 이름 추출
         else:
-            dataset_name = 'not-language-wise/aug[]' # 실험마다 수정해야함
+            dataset_name = "not-language-wise/[1024]_cs[1024]_aug['CJ', 'N']" # 실험마다 수정해야함
         save_dir = osp.join(args.save_dir, dataset_name)  # 데이터셋별 저장 경로 생성
         os.makedirs(save_dir, exist_ok=True)
 
@@ -94,7 +94,7 @@ def do_training(args):
                 project=args.project,
                 entity='cv-21',
                 group=osp.basename(data_dir),
-                name=f'{args.max_epoch}e_{args.optimizer}_{args.scheduler}_{args.learning_rate}_{dataset_name}_[1024]_cs[1024]_aug['CJ', 'N']'
+                name=f"{dataset_name}"
             )
             wandb.config.update(args)
             wandb.watch(model)
@@ -128,7 +128,7 @@ def do_training(args):
             with open(osp.join(root_dir, f'ufo/valid{args.fold}.json'), 'r') as f:
                 val_data = json.load(f)
         else:
-            _lang_list = ['japanese']
+            _lang_list = ['chinese', 'japanese', 'thai', 'vietnamese']
             total_anno = dict(images=dict())
             for nation in _lang_list:
                 with open(osp.join(data_dir, f'{nation}_receipt/ufo/valid{args.fold}.json'), 'r', encoding='utf-8') as f:
