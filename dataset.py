@@ -352,12 +352,14 @@ class SceneTextDataset(Dataset):
         self.per_lang = per_lang
         self.k = 0 # 이미지 저장 횟수 추적
         self.max_save = 10 # 최대 저장 횟수
+        self.root_dir = root_dir # root_dir 추적
+
         if per_lang:
             with open(osp.join(root_dir, f'ufo/{split}{fold}.json'), 'r') as f:
                 anno = json.load(f)
             self.anno = anno
         else:
-            self._lang_list = ['chinese', 'japanese', 'thai', 'vietnamese']
+            self._lang_list = ['japanese']
             self.root_dir = root_dir
             self.split = split
             total_anno = dict(images=dict())
@@ -476,11 +478,9 @@ class SceneTextDataset(Dataset):
             original_image = original_image.permute(1, 2, 0).numpy()
         if isinstance(transformed_image, torch.Tensor):
             transformed_image = transformed_image.permute(1, 2, 0).numpy()
-        
-        data_dir = '/data/ephemeral/home/data_synth'
 
         # 증강된 이미지를 저장할 폴더 생성
-        augmented_img_dir = osp.join(data_dir, 'augmented_images')
+        augmented_img_dir = osp.join(self.root_dir, 'augmented_images')
         os.makedirs(augmented_img_dir, exist_ok=True)
 
         # 시각화를 위해 역정규화
