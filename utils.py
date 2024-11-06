@@ -78,15 +78,30 @@ def get_pred_bboxes(model, data_dir, valid_images, input_size, batch_size, split
 
 
 def infer_dir(data_dir, split, fname):
-        lang_indicator = fname.split('.')[1]
-        if lang_indicator == 'zh':
-            lang = 'chinese'
-        elif lang_indicator == 'ja':
-            lang = 'japanese'
-        elif lang_indicator == 'th':
-            lang = 'thai'
-        elif lang_indicator == 'vi':
-            lang = 'vietnamese'
+        if "data_synth" in data_dir:
+            # root_dir 내 _receipt로 끝나는 폴더를 찾아 언어 이름을 추출
+            lang_folders = [d for d in os.listdir(data_dir) if d.endswith('_receipt')]
+            for folder in lang_folders:
+                if folder == 'chinese_receipt':
+                    lang = 'chinese'
+                elif folder == 'japanese_receipt':
+                    lang='japanese'
+                elif folder == 'thai_receipt':
+                    lang = 'thai'
+                elif folder == 'vietnamese_receipt':
+                    lang = 'vietnamese'
+                else:
+                    raise ValueError          
         else:
-            raise ValueError
+            lang_indicator = fname.split('.')[1]
+            if lang_indicator == 'zh':
+                lang = 'chinese'
+            elif lang_indicator == 'ja':
+                lang = 'japanese'
+            elif lang_indicator == 'th':
+                lang = 'thai'
+            elif lang_indicator == 'vi':
+                lang = 'vietnamese'
+            else:
+                raise ValueError
         return osp.join(data_dir, f'{lang}_receipt', 'img', split)

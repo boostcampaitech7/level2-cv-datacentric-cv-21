@@ -15,7 +15,7 @@ from dataset import SceneTextDataset
 import albumentations as A
 
 def main():
-    data_dir = '/data/ephemeral/home/data'
+    data_dir = '/data/ephemeral/home/data_synth'
     ignore_tags = ['masked', 'excluded-region', 'maintable', 'stamp']
     
 
@@ -33,7 +33,7 @@ def main():
 
     image_size = [1024]
     crop_size = [1024]
-    aug_select = []
+    aug_select = ['CJ', 'N']
 
     fold = 0
     custom_augmentation = [custom_augmentation_dict[s] for s in aug_select]

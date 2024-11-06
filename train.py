@@ -49,7 +49,7 @@ def parse_args():
     parser.add_argument('-m', '--mode', type=str, default='on', help='wandb logging mode(on: online, off: disabled)')
     parser.add_argument('-p', '--project', type=str, default='datacentric', help='wandb project name')
     parser.add_argument('-d', '--data', default='pickle', type=str, help='description about dataset', choices=['original', 'pickle'])
-    parser.add_argument("--optimizer", type=str, default='Adam', choices=['adam', 'adamW'])
+    parser.add_argument("--optimizer", type=str, default='Adam', choices=['adam', 'AdamW'])
     parser.add_argument("--scheduler", type=str, default='multistep', choices=['multistep', 'cosine'])
     parser.add_argument("--resume", type=str, default=None, choices=[None, 'resume', 'finetune'])
     parser.add_argument('--save_dir', type=str, default=os.path.join(os.environ.get('SM_MODEL_DIR', 'trained_models'), 'saved_models'),
@@ -74,8 +74,8 @@ def do_training(args):
             "/data/ephemeral/home/data/japanese_receipt",
         ]
     else:
-        train_dataset_dirs=["/data/ephemeral/home/data/pickle/[1024]_cs[1024]_aug['CJ', 'N']/train"]
-        data_dirs=["/data/ephemeral/home/data/"]
+        train_dataset_dirs=["/data/ephemeral/home/data_synth/pickle/[1024]_cs[1024]_aug['CJ', 'N']/train"]
+        data_dirs=["/data/ephemeral/home/data_synth/"]
     for data_dir, train_dataset_dir in zip(data_dirs, train_dataset_dirs):
         if args.per_lang:
             dataset_name = osp.basename(data_dir)  # 데이터셋 이름 추출
@@ -94,7 +94,7 @@ def do_training(args):
                 project=args.project,
                 entity='cv-21',
                 group=osp.basename(data_dir),
-                name=f'{args.max_epoch}e_{args.optimizer}_{args.scheduler}_{args.learning_rate}_{dataset_name}'
+                name=f'{args.max_epoch}e_{args.optimizer}_{args.scheduler}_{args.learning_rate}_{dataset_name}_[1024]_cs[1024]_aug['CJ', 'N']'
             )
             wandb.config.update(args)
             wandb.watch(model)
