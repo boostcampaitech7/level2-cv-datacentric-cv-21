@@ -20,19 +20,19 @@ CHECKPOINT_EXTENSIONS = ['.pth', '.ckpt']
 def parse_args():
     parser = ArgumentParser()
 
-    # Conventional args
+    # 실험마다 (증강에 따른) 모델 경로 및 결과 저장 경로를 수정해주셔야합니다! 25~28, 36
     parser.add_argument('--model_dir', nargs='+', type=str, default=[
-        "/data/ephemeral/home/github/code/trained_models/150e_Adam_cosine_0.001_chinese_receipt",
-        "/data/ephemeral/home/github/code/trained_models/150e_Adam_cosine_0.001_japanese_receipt",
-        "/data/ephemeral/home/github/code/trained_models/150e_Adam_cosine_0.001_thai_receipt",
-        "/data/ephemeral/home/github/code/trained_models/150e_Adam_cosine_0.001_vietnamese_receipt"
+        "/data/ephemeral/home/github/saved_models/chinese_receipt/aug[]",
+        "/data/ephemeral/home/github/saved_models/japanese_receipt/aug[]",
+        "/data/ephemeral/home/github/saved_models/thai_receipt/aug[]",
+        "/data/ephemeral/home/github/saved_models/vietnamese_receipt/aug[]",
         ])
     parser.add_argument('--data_dirs', nargs='+', type=str, default=[
         "/data/ephemeral/home/data/chinese_receipt",
         "/data/ephemeral/home/data/japanese_receipt",
         "/data/ephemeral/home/data/thai_receipt",
-        "/data/ephemeral/home/data/vietnamese_receipt"
-    ])
+        "/data/ephemeral/home/data/vietnamese_receipt",
+        ])
     parser.add_argument('--output_dir', default=os.environ.get('SM_OUTPUT_DATA_DIR', 'predictions'))
     parser.add_argument('--device', default='cuda' if cuda.is_available() else 'cpu')
     parser.add_argument('--input_size', type=int, default=2048)
@@ -45,6 +45,12 @@ def parse_args():
 
     return args
 
+def draw_boxes_on_image(image, bboxes):
+    """Draw bounding boxes on an image."""
+    for bbox in bboxes:
+        bbox = bbox.astype(int)
+        cv2.polylines(image, [bbox], isClosed=True, color=(0, 255, 0), thickness=2)
+    return image
 
 def do_inference(model, ckpt_fpath, data_dir, input_size, batch_size, split='test'):
     model.load_state_dict(torch.load(ckpt_fpath, map_location='cpu'))
@@ -52,17 +58,32 @@ def do_inference(model, ckpt_fpath, data_dir, input_size, batch_size, split='tes
 
     image_fnames, by_sample_bboxes = [], []
 
+    output_image_dir = osp.join(data_dir, 'output_images')  # Output directory for images with bounding boxes
+    os.makedirs(output_image_dir, exist_ok=True)
+
     images = []
     for image_fpath in tqdm(glob(osp.join(data_dir, 'img/{}/*'.format(split)))):
         image_fnames.append(osp.basename(image_fpath))
-
         images.append(cv2.imread(image_fpath)[:, :, ::-1])
+
         if len(images) == batch_size:
-            by_sample_bboxes.extend(detect(model, images, input_size))
+            predictions = detect(model, images, input_size)
+            by_sample_bboxes.extend(predictions)
+
+            # Draw bounding boxes on images and save them
+            for img, bboxes, fname in zip(images, predictions, image_fnames[-batch_size:]):
+                img_with_boxes = draw_boxes_on_image(img.copy(), bboxes)
+                cv2.imwrite(osp.join(output_image_dir, fname), img_with_boxes[:, :, ::-1])  # Save image with boxes
+            
             images = []
 
     if len(images):
-        by_sample_bboxes.extend(detect(model, images, input_size))
+        predictions = detect(model, images, input_size)
+        by_sample_bboxes.extend(predictions)
+        for img, bboxes, fname in zip(images, predictions, image_fnames[-batch_size:]):
+            img_with_boxes = draw_boxes_on_image(img.copy(), bboxes)
+            cv2.imwrite(osp.join(output_image_dir, fname), img_with_boxes[:, :, ::-1])
+
 
     ufo_result = dict(images=dict())
     for image_fname, bboxes in zip(image_fnames, by_sample_bboxes):
@@ -93,6 +114,9 @@ def main(args):
 
         # 추론 결과를 최종 결과에 업데이트
         ufo_result['images'].update(split_result['images'])
+
+    # csv를 저장할 폴더 생성
+    os.makedirs(args.output_dir, exist_ok=True)
 
     # 최종 결과를 하나의 CSV 파일로 저장
     output_fname = 'output.csv'
