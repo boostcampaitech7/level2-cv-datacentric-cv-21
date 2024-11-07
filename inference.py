@@ -97,31 +97,35 @@ def main(args):
     # 최종 결과를 저장할 딕셔너리 초기화
     ufo_result = dict(images=dict())
 
-    for model_dir, data_dir in zip(args.model_dir, args.data_dirs):
-        # 모델과 체크포인트 초기화
-        model = EAST(pretrained=False).to(args.device)
-        best_checkpoint_fpath = osp.join(model_dir, 'best.pth')
-
-        if os.path.isfile(best_checkpoint_fpath):
-            print(f'{model_dir}의 best checkpoint 찾음')
-            ckpt_fpath = best_checkpoint_fpath
-        else:
-            print(f'{model_dir}의 best checkpoint 찾지 못함, latest checkpoint로 설정')
-            ckpt_fpath = osp.join(model_dir, 'latest.pth')
-
-        # 각 모델과 데이터 디렉토리에서 추론 수행
-        split_result = do_inference(model, ckpt_fpath, data_dir, args.input_size, args.batch_size, split='test')
-
-        # 추론 결과를 최종 결과에 업데이트
-        ufo_result['images'].update(split_result['images'])
+    # 언어 리스트를 명시적으로 정의
+    languages = ['chinese', 'japanese', 'thai', 'vietnamese']
 
     # csv를 저장할 폴더 생성
     os.makedirs(args.output_dir, exist_ok=True)
 
-    # 최종 결과를 하나의 CSV 파일로 저장
-    output_fname = 'output.csv'
-    with open(osp.join(args.output_dir, output_fname), 'w') as f:
-        json.dump(ufo_result, f, indent=4)
+    for lang, model_dir in zip(languages, args.model_dir):
+        for data_dir in args.data_dirs:
+            # 모델과 체크포인트 초기화
+            model = EAST(pretrained=False).to(args.device)
+            best_checkpoint_fpath = osp.join(model_dir, 'best.pth')
+
+            if os.path.isfile(best_checkpoint_fpath):
+                print(f'{model_dir}의 best checkpoint 찾음')
+                ckpt_fpath = best_checkpoint_fpath
+            else:
+                print(f'{model_dir}의 best checkpoint 찾지 못함, latest checkpoint로 설정')
+                ckpt_fpath = osp.join(model_dir, 'latest.pth')
+
+            # 각 모델과 데이터 디렉토리에서 추론 수행
+            split_result = do_inference(model, ckpt_fpath, data_dir, args.input_size, args.batch_size, split='test')
+
+            # 추론 결과를 최종 결과에 업데이트
+            ufo_result['images'].update(split_result['images'])
+
+        # 최종 결과를 하나의 CSV 파일로 저장
+        output_fname = f'output_{lang}.csv'
+        with open(osp.join(args.output_dir, output_fname), 'w') as f:
+            json.dump(ufo_result, f, indent=4)
 
 
 if __name__ == '__main__':

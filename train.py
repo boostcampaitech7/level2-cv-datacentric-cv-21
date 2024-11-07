@@ -68,10 +68,10 @@ def do_training(args):
     if args.per_lang:
     # 다음의 경로를 수정해주세요 : Ln 71~74, 87
         train_dataset_dirs=[
-            "/data/ephemeral/home/data/chinese_receipt/pickle/[1024]_cs[1024]_aug[]/train",
-            "/data/ephemeral/home/data/japanese_receipt/pickle/[1024]_cs[1024]_aug[]/train",
-            "/data/ephemeral/home/data/thai_receipt/pickle/[1024]_cs[1024]_aug[]/train",
-            "/data/ephemeral/home/data/vietnamese_receipt/pickle/[1024]_cs[1024]_aug[]/train",
+            "/data/ephemeral/home/data/chinese_receipt/pickle/[1024]_cs[1024]_aug['CJ', 'GN']/train",
+            "/data/ephemeral/home/data/japanese_receipt/pickle/[1024]_cs[1024]_aug['CJ', 'GN']/train",
+            "/data/ephemeral/home/data/thai_receipt/pickle/[1024]_cs[1024]_aug['CJ', 'GN']/train",
+            "/data/ephemeral/home/data/vietnamese_receipt/pickle/[1024]_cs[1024]_aug['CJ', 'GN']/train",
         ]
         data_dirs=[
             "/data/ephemeral/home/data/chinese_receipt",
@@ -84,7 +84,7 @@ def do_training(args):
         data_dirs=["/data/ephemeral/home/data/"]
     for data_dir, train_dataset_dir in zip(data_dirs, train_dataset_dirs):
         if args.per_lang:
-            dataset_name = osp.basename(data_dir)+'/aug[]'  # 데이터셋 이름 추출, 실험마다 수정해야함
+            dataset_name = osp.basename(data_dir)+'/aug[CJ, GN]'  # 데이터셋 이름 추출, 실험마다 수정해야함
         else:
             dataset_name = 'not-language-wise/aug[]' # 실험마다 수정해야함
         save_dir = osp.join(args.save_dir, dataset_name)  # 데이터셋별 저장 경로 생성
@@ -131,7 +131,7 @@ def do_training(args):
 
         ### Val Loader ###
         if args.per_lang:
-            with open(osp.join(root_dir, f'ufo/valid{args.fold}.json'), 'r') as f:
+            with open(osp.join(data_dir, f'ufo/valid{args.fold}.json'), 'r') as f:
                 val_data = json.load(f)
         else:
             _lang_list = ['japanese']
