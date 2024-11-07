@@ -16,10 +16,10 @@ import albumentations as A
 
 def main():
     data_dirs = [
-        '/data/ephemeral/home/data_synth/chinese_receipt',
-        '/data/ephemeral/home/data_synth/japanese_receipt',
-        '/data/ephemeral/home/data_synth/thai_receipt',
-        '/data/ephemeral/home/data_synth/vietnamese_receipt'
+        '/data/ephemeral/home/data/chinese_receipt',
+        '/data/ephemeral/home/data/japanese_receipt',
+        '/data/ephemeral/home/data/thai_receipt',
+        '/data/ephemeral/home/data/vietnamese_receipt'
     ]
     ignore_tags = ['masked', 'excluded-region', 'maintable', 'stamp']
     

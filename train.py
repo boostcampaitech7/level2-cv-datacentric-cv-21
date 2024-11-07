@@ -74,17 +74,23 @@ def do_training(args):
     if args.per_lang:
     # 다음의 경로를 수정해주세요 : Ln 71, 77, 83
         train_dataset_dirs=[
-            "/data/ephemeral/home/data/japanese_receipt/pickle/[1024]_cs[1024]_aug[]/train",
+            "/data/ephemeral/home/data/chinese_receipt/pickle/[1024]_cs[1024]_aug['CJ']/train",
+            "/data/ephemeral/home/data/japanese_receipt/pickle/[1024]_cs[1024]_aug['CJ']/train",
+            "/data/ephemeral/home/data/thai_receipt/pickle/[1024]_cs[1024]_aug['CJ']/train",
+            "/data/ephemeral/home/data/vietnamese_receipt/pickle/[1024]_cs[1024]_aug['CJ']/train"
         ]
         data_dirs=[
+            "/data/ephemeral/home/data/chinese_receipt",
             "/data/ephemeral/home/data/japanese_receipt",
+            "/data/ephemeral/home/data/thai_receipt",
+            "/data/ephemeral/home/data/vietnamese_receipt"
         ]
     else:
-        train_dataset_dirs=["/data/ephemeral/home/data_synth/pickle/[1024]_cs[1024]_aug['CJ']/train"]
-        data_dirs=["/data/ephemeral/home/data_synth/"]
+        train_dataset_dirs=["/data/ephemeral/home/data/pickle/[1024]_cs[1024]_aug['CJ']/train"]
+        data_dirs=["/data/ephemeral/home/data/"]
     for data_dir, train_dataset_dir in zip(data_dirs, train_dataset_dirs):
         if args.per_lang:
-            dataset_name = osp.basename(data_dir)  # 데이터셋 이름 추출
+            dataset_name = osp.basename(data_dir) + "[1024]_cs[1024]aug['CJ']"  # 데이터셋 이름 추출
         else:
             dataset_name = "not-language-wise/load_pth_data_[1024]_cs[1024]_aug['CJ']" # 실험마다 수정해야함
         save_dir = osp.join(args.save_dir, dataset_name)  # 데이터셋별 저장 경로 생성
@@ -93,7 +99,7 @@ def do_training(args):
         model = EAST().to(args.device)
         # Load pretrained weights if resume argument is provided
         if args.resume:
-            weight_path = osp.join("/data/ephemeral/home/github/saved_models/not-language-wise/[1024]_cs[1024]_aug['CJ', 'N']", 'best.pth')
+            weight_path = osp.join(save_dir, 'best.pth')
             load_pretrained_weights(model, weight_path)
         
         optimizer = optim(args.optimizer, args.learning_rate, model.parameters())
@@ -105,7 +111,7 @@ def do_training(args):
                 project=args.project,
                 entity='cv-21',
                 group=osp.basename(data_dir),
-                name=f"{dataset_name}"
+                name=f"{dataset_name}_load_pth"
             )
             wandb.config.update(args)
             wandb.watch(model)
@@ -136,10 +142,10 @@ def do_training(args):
 
         ### Val Loader ###
         if args.per_lang:
-            with open(osp.join(root_dir, f'ufo/valid{args.fold}.json'), 'r') as f:
+            with open(osp.join(data_dir, f'ufo/valid{args.fold}.json'), 'r') as f:
                 val_data = json.load(f)
         else:
-            _lang_list = ['chinese', 'japanese', 'thai', 'vietnamese']
+            _lang_list = ['japanese']
             total_anno = dict(images=dict())
             for nation in _lang_list:
                 with open(osp.join(data_dir, f'{nation}_receipt/ufo/valid{args.fold}.json'), 'r', encoding='utf-8') as f:
