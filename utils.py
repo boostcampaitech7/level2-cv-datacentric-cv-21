@@ -89,4 +89,4 @@ def infer_dir(data_dir, split, fname):
             lang = 'vietnamese'
         else:
             raise ValueError
-        return osp.join(data_dir, f'{lang}_receipt', 'img', split)
+        return osp.join(data_dir, 'img', split)
