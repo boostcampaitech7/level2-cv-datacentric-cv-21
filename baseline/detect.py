@@ -114,7 +114,8 @@ def detect(model, images, input_size, map_scale=0.5):
     prep_fn = A.Compose([
         LongestMaxSize(input_size), A.PadIfNeeded(min_height=input_size, min_width=input_size,
                                                   position=A.PadIfNeeded.PositionType.TOP_LEFT),
-        A.Normalize(), ToTensorV2()])
+        A.Normalize(), 
+        ToTensorV2()])
     device = list(model.parameters())[0].device
 
     batch, orig_sizes = [], []

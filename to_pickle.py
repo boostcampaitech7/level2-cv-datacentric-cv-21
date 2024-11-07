@@ -28,14 +28,12 @@ def main():
         'GN': A.GaussNoise(p=0.5),
         'HSV': A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
         'RBC': A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
-
-        'N': A.Normalize(mean=(0.6831708235495132, 0.6570838514500981, 0.6245893701608299),
-                        std=(0.19835448743425943, 0.20532970462804873, 0.21117810051894778), p=1.0)
+        'BI': A.ToGray(always_apply=True, p=1.0),
     }
 
     image_size = [1024]
     crop_size = [1024]
-    aug_select = ['CJ3']
+    aug_select = []
 
     fold = 0
     custom_augmentation = [custom_augmentation_dict[s] for s in aug_select]
@@ -59,7 +57,7 @@ def main():
                     ignore_tags=ignore_tags,
                     custom_transform=A.Compose(custom_augmentation),
                     color_jitter=False,
-                    normalize=False
+                    normalize=True
                 )
             train_dataset = EASTDataset(train_dataset)
 

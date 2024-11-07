@@ -7,28 +7,23 @@ from glob import glob
 import torch
 import cv2
 from torch import cuda
+from baseline.model import EAST
 from tqdm import tqdm
 
-# Function from "baseline" folder (수정이 불가한 내용들)
 from baseline.detect import detect
-from baseline.model import EAST
 
 
 CHECKPOINT_EXTENSIONS = ['.pth', '.ckpt']
-
+LANGUAGE_LIST = ['chinese', 'japanese', 'thai', 'vietnamese']
 
 def parse_args():
     parser = ArgumentParser()
 
     # Conventional args
-    parser.add_argument('--model_dir', type=str, default='/data/ephemeral/home/github/saved_models/not-language-wise/BI')
-    parser.add_argument('--data_dirs', nargs='+', type=str, default=[
-        "/data/ephemeral/home/data/chinese_receipt",
-        "/data/ephemeral/home/data/japanese_receipt",
-        "/data/ephemeral/home/data/thai_receipt",
-        "/data/ephemeral/home/data/vietnamese_receipt"
-    ])
+    parser.add_argument('--data_dir', default=os.environ.get('SM_CHANNEL_EVAL', 'data'))
+    parser.add_argument('--model_dir', default='/data/ephemeral/home/github/saved_models/not-language-wise/CJ2')
     parser.add_argument('--output_dir', default=os.environ.get('SM_OUTPUT_DATA_DIR', 'predictions'))
+
     parser.add_argument('--device', default='cuda' if cuda.is_available() else 'cpu')
     parser.add_argument('--input_size', type=int, default=2048)
     parser.add_argument('--batch_size', type=int, default=5)
@@ -42,13 +37,14 @@ def parse_args():
 
 
 def do_inference(model, ckpt_fpath, data_dir, input_size, batch_size, split='test'):
-    model.load_state_dict(torch.load(ckpt_fpath, map_location='cpu'))
-    model.eval()
+    # model.load_state_dict(torch.load(ckpt_fpath, map_location='cpu'))
+    # model.eval()
 
     image_fnames, by_sample_bboxes = [], []
 
     images = []
-    for image_fpath in tqdm(glob(osp.join(data_dir, 'img/{}/*'.format(split)))):
+    
+    for image_fpath in tqdm(sum([glob(osp.join(data_dir, f'{lang}_receipt/img/{split}/*')) for lang in LANGUAGE_LIST], [])):
         image_fnames.append(osp.basename(image_fpath))
 
         images.append(cv2.imread(image_fpath)[:, :, ::-1])
@@ -68,30 +64,23 @@ def do_inference(model, ckpt_fpath, data_dir, input_size, batch_size, split='tes
 
 
 def main(args):
-    # 최종 결과를 저장할 딕셔너리 초기화
+    # Initialize model
+    model = EAST(pretrained=False).to(args.device)
+
+    # Get paths to checkpoint files
+    ckpt_fpath = osp.join(args.model_dir, 'latest.pth')
+
+    if not osp.exists(args.output_dir):
+        os.makedirs(args.output_dir)
+
+    print('Inference in progress')
+
     ufo_result = dict(images=dict())
-    model_dir = args.model_dir
+    split_result = do_inference(model, ckpt_fpath, args.data_dir, args.input_size,
+                                args.batch_size, split='test')
+    ufo_result['images'].update(split_result['images'])
 
-    for data_dir in args.data_dirs:
-        # 모델과 체크포인트 초기화
-        model = EAST(pretrained=False).to(args.device)
-        best_checkpoint_fpath = osp.join(model_dir, 'best.pth')
-
-        if os.path.isfile(best_checkpoint_fpath):
-            print(f'{model_dir}의 best checkpoint 찾음')
-            ckpt_fpath = best_checkpoint_fpath
-        else:
-            print(f'{model_dir}의 best checkpoint 찾지 못함, latest checkpoint로 설정')
-            ckpt_fpath = osp.join(model_dir, 'latest.pth')
-
-        # 각 모델과 데이터 디렉토리에서 추론 수행
-        split_result = do_inference(model, ckpt_fpath, data_dir, args.input_size, args.batch_size, split='test')
-
-        # 추론 결과를 최종 결과에 업데이트
-        ufo_result['images'].update(split_result['images'])
-
-    # 최종 결과를 하나의 CSV 파일로 저장
-    output_fname = 'output_BI.csv'
+    output_fname = 'output2.csv'
     with open(osp.join('/data/ephemeral/home/github/predictions', output_fname), 'w') as f:
         json.dump(ufo_result, f, indent=4)
 

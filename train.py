@@ -24,6 +24,7 @@ from utils import get_gt_bboxes, get_pred_bboxes, seed_everything, AverageMeter
 from dataset import SceneTextDataset, PickleDataset
 from optimizer import optim
 from scheduler import sched
+from inference_ori import do_inference
 
 import albumentations as A
 import numpy as np
@@ -43,11 +44,11 @@ def parse_args():
     parser.add_argument('--input_size', type=int, default=1024)
     parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--learning_rate', type=float, default=1e-3)
-    parser.add_argument('--max_epoch', type=int, default=150)
+    parser.add_argument('--max_epoch', type=int, default=5)
     parser.add_argument('--save_interval', type=int, default=1)
     parser.add_argument('--ignore_tags', type=list, default=['masked', 'excluded-region', 'maintable', 'stamp'])
     parser.add_argument('-m', '--mode', type=str, default='on', help='wandb logging mode(on: online, off: disabled)')
-    parser.add_argument('-p', '--project', type=str, default='sungjoo_Color_Jitter', help='wandb project name')
+    parser.add_argument('-p', '--project', type=str, default='sungjoo_binarization', help='wandb project name')
     parser.add_argument('-d', '--data', default='pickle', type=str, help='description about dataset', choices=['original', 'pickle'])
     parser.add_argument("--optimizer", type=str, default='Adam', choices=['adam', 'adamW'])
     parser.add_argument("--scheduler", type=str, default='multistep', choices=['multistep', 'cosine'])
@@ -55,6 +56,7 @@ def parse_args():
     parser.add_argument('--save_dir', type=str, default=os.path.join(os.environ.get('SM_MODEL_DIR', 'trained_models'), 'saved_models'),
                         help='Directory to save models')
     parser.add_argument('--EXP', type=str, default='')
+    
     args = parser.parse_args()
 
     if args.input_size % 32 != 0:
@@ -69,7 +71,7 @@ def do_training(args):
     if args.per_lang:
     # 다음의 경로를 수정해주세요 : Ln 71, 74, 77
         train_dataset_dirs=[
-            "/data/ephemeral/home/data/japanese_receipt/pickle/[1024]_cs[1024]_aug['CJ', 'N']/train",
+            "/data/ephemeral/home/data/japanese_receipt/pickle/[1024]_cs[1024]_aug['BI']/train",
         ]
         data_dirs=[
             "/data/ephemeral/home/data/japanese_receipt",
@@ -95,7 +97,7 @@ def do_training(args):
                 project=args.project,
                 entity='cv-21',
                 group=osp.basename(data_dir),
-                name=f'{args.max_epoch}e_{args.optimizer}_{args.scheduler}_{args.learning_rate}_{dataset_name}'
+                name=f'{args.max_epoch}e_{args.optimizer}_{args.scheduler}_{args.learning_rate}_{dataset_name}_{args.EXP}'
             )
             wandb.config.update(args)
             wandb.watch(model)
@@ -186,6 +188,15 @@ def do_training(args):
 
             if (epoch + 1) % args.save_interval == 0:
                 torch.save(model.state_dict(), osp.join(save_dir, 'latest.pth'))
+
+                ufo_result = dict(images=dict())
+                split_result = do_inference(model, '', '/data/ephemeral/home/data', 2048,
+                            5, split='test')
+                ufo_result['images'].update(split_result['images'])
+
+                output_fname = 'latest_CJ1.csv'
+                with open(osp.join('/data/ephemeral/home/github/predictions', output_fname), 'w') as f:
+                    json.dump(ufo_result, f, indent=4)
 
         if args.mode == 'on':
             wandb.alert('Training Task Finished', f"Best F1 Score: {best_f1_score:.4f}")
