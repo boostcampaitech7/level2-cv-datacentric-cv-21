@@ -78,15 +78,27 @@ def get_pred_bboxes(model, data_dir, valid_images, input_size, batch_size, split
 
 
 def infer_dir(data_dir, split, fname):
-        lang_indicator = fname.split('.')[1]
-        if lang_indicator == 'zh':
-            lang = 'chinese'
-        elif lang_indicator == 'ja':
-            lang = 'japanese'
-        elif lang_indicator == 'th':
-            lang = 'thai'
-        elif lang_indicator == 'vi':
-            lang = 'vietnamese'
+        if "data_synth" in data_dir:
+            if data_dir == "/data/ephemeral/home/data_synth/chinese_receipt":
+                lang = 'chinese'
+            elif data_dir == "/data/ephemeral/home/data_synth/japanese_receipt":
+                lang = 'japanese'
+            elif data_dir == "/data/ephemeral/home/data_synth/thai_receipt":
+                lang = 'thai'
+            elif data_dir == "/data/ephemeral/home/data_synth/vietnamese_receipt":
+                lang = 'vietnamese'
+            else:
+                raise ValueError
         else:
-            raise ValueError
+            lang_indicator = fname.split('.')[1]
+            if lang_indicator == 'zh':
+                lang = 'chinese'
+            elif lang_indicator == 'ja':
+                lang = 'japanese'
+            elif lang_indicator == 'th':
+                lang = 'thai'
+            elif lang_indicator == 'vi':
+                lang = 'vietnamese'
+            else:
+                raise ValueError
         return osp.join(data_dir, 'img', split)

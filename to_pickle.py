@@ -15,11 +15,12 @@ from dataset import SceneTextDataset
 import albumentations as A
 
 def main():
-    data_dirs = ['/data/ephemeral/home/data/chinese_receipt/',
-                '/data/ephemeral/home/data/japanese_receipt/',
-                '/data/ephemeral/home/data/thai_receipt/',
-                '/data/ephemeral/home/data/vietnamese_receipt/'
-        ]
+    data_dirs = [
+        '/data/ephemeral/home/data/chinese_receipt',
+        '/data/ephemeral/home/data/japanese_receipt',
+        '/data/ephemeral/home/data/thai_receipt',
+        '/data/ephemeral/home/data/vietnamese_receipt'
+    ]
     ignore_tags = ['masked', 'excluded-region', 'maintable', 'stamp']
     
     
@@ -37,7 +38,7 @@ def main():
 
     image_size = [1024]
     crop_size = [1024]
-    aug_select = ['CJ', 'GN']
+    aug_select = ['CJ']
 
     fold = 0
     custom_augmentation = [custom_augmentation_dict[s] for s in aug_select]

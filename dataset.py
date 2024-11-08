@@ -385,17 +385,32 @@ class SceneTextDataset(Dataset):
         self.custom_transform = custom_transform
 
     def _infer_dir(self, fname):
-        lang_indicator = fname.split('.')[1]
-        if lang_indicator == 'zh':
-            lang = 'chinese'
-        elif lang_indicator == 'ja':
-            lang = 'japanese'
-        elif lang_indicator == 'th':
-            lang = 'thai'
-        elif lang_indicator == 'vi':
-            lang = 'vietnamese'
+        if "data_synth" in self.root_dir:
+            # root_dir 내 _receipt로 끝나는 폴더를 찾아 언어 이름을 추출
+            lang_folders = [d for d in os.listdir(self.root_dir) if d.endswith('_receipt')]
+            for folder in lang_folders:
+                if folder == 'chinese_receipt':
+                    lang = 'chinese'
+                elif folder == 'japanese_receipt':
+                    lang='japanese'
+                elif folder == 'thai_receipt':
+                    lang = 'thai'
+                elif folder == 'vietnamese_receipt':
+                    lang = 'vietnamese'
+                else:
+                    raise ValueError          
         else:
-            raise ValueError
+            lang_indicator = fname.split('.')[1]
+            if lang_indicator == 'zh':
+                lang = 'chinese'
+            elif lang_indicator == 'ja':
+                lang = 'japanese'
+            elif lang_indicator == 'th':
+                lang = 'thai'
+            elif lang_indicator == 'vi':
+                lang = 'vietnamese'
+            else:
+                raise ValueError
         return osp.join(self.root_dir, f'{lang}_receipt', 'img', self.split)
     def __len__(self):
         return len(self.image_fnames)
@@ -467,7 +482,7 @@ class SceneTextDataset(Dataset):
             original_image = original_image.permute(1, 2, 0).numpy()
         if isinstance(transformed_image, torch.Tensor):
             transformed_image = transformed_image.permute(1, 2, 0).numpy()
-            
+
         # 증강된 이미지를 저장할 폴더 생성
         augmented_img_dir = osp.join(self.root_dir, 'augmented_images')
         os.makedirs(augmented_img_dir, exist_ok=True)
