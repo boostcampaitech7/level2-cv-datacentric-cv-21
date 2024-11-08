@@ -72,7 +72,7 @@ def load_pretrained_weights(model, weight_path):
 
 def do_training(args):
     if args.per_lang:
-    # 다음의 경로를 수정해주세요 : Ln 71, 77, 83
+    # 다음의 경로를 수정해주세요 : Ln 71~74, 87
         train_dataset_dirs=[
             "/data/ephemeral/home/data/chinese_receipt/pickle/[1024]_cs[1024]_aug['CJ']/train",
             "/data/ephemeral/home/data/japanese_receipt/pickle/[1024]_cs[1024]_aug['CJ']/train",
@@ -83,7 +83,7 @@ def do_training(args):
             "/data/ephemeral/home/data/chinese_receipt",
             "/data/ephemeral/home/data/japanese_receipt",
             "/data/ephemeral/home/data/thai_receipt",
-            "/data/ephemeral/home/data/vietnamese_receipt"
+            "/data/ephemeral/home/data/vietnamese_receipt",
         ]
     else:
         train_dataset_dirs=["/data/ephemeral/home/data/pickle/[1024]_cs[1024]_aug['CJ']/train"]

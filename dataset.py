@@ -12,6 +12,7 @@ import cv2
 import albumentations as A
 from torch.utils.data import Dataset
 from shapely.geometry import Polygon
+from SaltPepper import SaltPepper
 
 
 def cal_distance(x1, y1, x2, y2):
@@ -468,6 +469,9 @@ class SceneTextDataset(Dataset):
         if self.normalize:
             funcs.append(A.Normalize())
         transform = A.Compose(funcs)
+        
+        if np.random.random() < 0.5:
+            image = SaltPepper(image)
 
         transformed_image = transform(image=image)['image']
         word_bboxes = np.reshape(vertices, (-1, 4, 2))
