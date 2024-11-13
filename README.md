@@ -26,11 +26,14 @@ Data-Centric 접근을 기반으로 데이터 품질을 개선하고, 글자 검
 </table>
 </div>
 
-## 👥  Role
+## 👥 Role
 <img src="https://github.com/user-attachments/assets/ccb6570b-e2bf-471b-8fcf-a480abc64866" />
 
 공통 역할은 annotation guideline을 세워서 EDA를 했다. EDA가 끝난 후, 개인 역할을 분담하여 프로젝트를 진행했다.
 
+## 📝 WrapUp_Report
+<a href="https://boyamie.github.io/reports/datacentric.pdf">
+  <img src="https://img.shields.io/badge/WrapUp_Report-white?style=for-the-badge&logo=adobeacrobatreader&logoColor=red" alt="Data-Centric report">
 ```
 📦github
  ┣ 📂.git
