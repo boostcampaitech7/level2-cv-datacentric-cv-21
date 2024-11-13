@@ -34,21 +34,3 @@ Data-Centric 접근을 기반으로 데이터 품질을 개선하고, 글자 검
 ## 📝 WrapUp_Report
 <a href="https://boyamie.github.io/reports/datacentric.pdf">
   <img src="https://img.shields.io/badge/WrapUp_Report-white?style=for-the-badge&logo=adobeacrobatreader&logoColor=red" alt="Data-Centric report">
-  
-```
-📦github
- ┣ 📂.git
- ┣ 📂.github
- ┣ 📂archives : 저장소.
- ┣ 📂baseline : 수정이 금지된 파일들의 저장소입니다.
- ┣ 📂pths
- ┃ ┗ 📜vgg16_bn-6c64b313.pth
- ┣ 📜.gitignore
- ┣ 📜dataset.py : 전체적인 전처리 과정을 수행하는 파일입니다.
- ┣ 📜deteval.py
- ┣ 📜inference.py : checkpoint를 불러옵니다.
- ┣ 📜optimizer.py
- ┣ 📜requirements.txt
- ┣ 📜train.py : main 실행 파일입니다.
- ┗ 📜utils.py
-```
