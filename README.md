@@ -34,6 +34,7 @@ Data-Centric 접근을 기반으로 데이터 품질을 개선하고, 글자 검
 ## 📝 WrapUp_Report
 <a href="https://boyamie.github.io/reports/datacentric.pdf">
   <img src="https://img.shields.io/badge/WrapUp_Report-white?style=for-the-badge&logo=adobeacrobatreader&logoColor=red" alt="Data-Centric report">
+  
 ```
 📦github
  ┣ 📂.git
